@@ -53,7 +53,7 @@ import "./mapData.js"
     for(let w of walls.lvl) {
       const poob = log.aabb.minDist(w);
       log.vel.a(1, poob);
-      // log.pos.a(1, poob);
+      log.pos.a(1, poob);
       log.grounded = log.jump.minDist(w).y != 0 || log.grounded;
     }
 
