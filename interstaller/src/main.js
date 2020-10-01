@@ -1,33 +1,41 @@
 import "./math/vector.js"
 import "./math/matrix.js"
-import "./aabb.js"
+import "./math/aabb.js"
+
+import "./screen.js"
 
 
 ;(function() {
-  let viewport = document.getElementById("viewport");
-  let gl = viewport.getContext("webgl2");
+  const canvas = document.querySelector("#canvas");
+  const gl = canvas.getContext("webgl2");
 
   function resize() {
-    viewport.width = self.innerWidth;
-    viewport.height = self.innerHeight;
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+    gl.viewport(0, 0, innerWidth, innerHeight)
   }
 
   addEventListener("resize", resize);
   resize();
 
-  let keys = {};
-  addEventListener("keydown", e => { keys[e.code] = true; });
-  addEventListener("keyup", e => { keys[e.code] = false; });
+  const events = [];
+  addEventListener("keydown", e => { events.push(e); });
+  addEventListener("keyup", e => { events.push(e); });
+  addEventListener("mousemove", e => { events.push(e); });
+  addEventListener("mouseclick", e => { events.push(e); });
+  addEventListener("mouserelease", e => { events.push(e); });
 
-  let mouse = new Vec2();
-  addEventListener("mousemove", e => { mouse = new Vec2(e.x / innerWidth, e.y / innerHeight); });
+  let screen = new Menu(gl);
 
-  function main() {
+  let then = 0;
+  function main(now) {
     requestAnimationFrame(main);
-    gl.clearColor(mouse.x, 0.5, mouse.y, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    const dt = (now - then) * 0.001;
+    then = now;
 
-
+    screen.handle(events);
+    screen.update(dt);
+    screen.draw(dt);
   }
   requestAnimationFrame(main);
 })();

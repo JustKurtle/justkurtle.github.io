@@ -9,7 +9,7 @@ self.GameObj = class GameObj {
 
   draw(ctx) {
     ctx.fillStyle = this.color;
-    ctx.fillRect(this.pos.x, this.pos.y, this.aabb.size.x, this.aabb.size.y);
+    ctx.fillRect(this.pos.x, this.pos.y, this.aabb.w, this.aabb.h);
   }
 };
 
@@ -20,10 +20,10 @@ self.PhysBox = class PhysBox extends GameObj{
   }
 
   update() {
-    const gf = new Vec2(0.8, 0.98);
-    const ngf = new Vec2(0.98, 0.98);
+    const gf = 0.8;
+    const ngf = 0.98;
 
-    this.vel.m(1, (this.grounded) ? gf : ngf);
+    this.vel.m((this.grounded) ? gf : ngf);
     this.pos.a(1, this.vel);
   }
 };
