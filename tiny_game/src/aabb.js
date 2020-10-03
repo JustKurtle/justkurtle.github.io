@@ -12,8 +12,6 @@ self.AABB = class AABB {
   get E() { return this.W + this.w; }
   get S() { return this.N + this.h; }
 
-  get max() { return this.pos.a(1, this.size, new Vec2()); }
-
   minOut(that) {
     let out = new Vec2();
 
