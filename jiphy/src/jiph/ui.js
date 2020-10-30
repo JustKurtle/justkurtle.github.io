@@ -31,6 +31,25 @@ self.jUI = class jUI {
       // jUI.#up = u.s(f.m(dy, [])).unit;
       // jUI.#up = u.a(r.m(dx, [])).unit;
     };
+    let pt = { clientX: 0, clientY: 0 };
+    window.ontouchstart = e => pt = e.touches[0];
+    window.ontouchmove = e => {
+      const move = [e.touches[0].clientX - pt.clientX, e.touches[0].clientY - pt.clientY];
+      pt = e.touches[0];
+
+      const dx = -move[0] * 2 / innerWidth;
+      const dy = move[1] * 2 / innerHeight;
+
+      const r = jUI.#up.cross(jUI.#dir).unit;
+      const u = jUI.#up.unit;
+      const f = jUI.#dir.unit;
+
+      jUI.#dir = f.a(u.m(dy, [])).unit;
+      jUI.#dir = f.a(r.m(dx, [])).unit;
+
+      // jUI.#up = u.s(f.m(dy, [])).unit;
+      // jUI.#up = u.a(r.m(dx, [])).unit;
+    };
     window.onkeydown = e => (!e.repeat && keys.indexOf(e.code) < 0) ? keys.push(e.code) : undefined;
     window.onkeyup = e => delete keys[keys.indexOf(e.code)];
 
