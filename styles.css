@@ -1,0 +1,12 @@
+#projects {
+    width: 250px;
+    color: #8f63b9;
+    
+    list-style: none;
+}
+
+.links {
+    text-decoration: none;
+    color: #8f63b9;
+    font: Arial;
+}
