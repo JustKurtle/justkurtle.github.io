@@ -25,7 +25,7 @@ self.Menu = class Menu extends _Screen {
           this.mouse.y = e.y / innerHeight;
           break;
         default:
-          console.log(e.type);
+          console.log(e);
           break;
       }
     }
