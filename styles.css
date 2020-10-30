@@ -1,30 +1,79 @@
+::-webkit-scrollbar {
+  width: 16px;
+}
+::-webkit-scrollbar-track {
+  background: #242933; 
+}
+::-webkit-scrollbar-thumb {
+  background: #3B4252;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #434C5E; 
+}
+
+
 html {
-    min-width: 100%;
-    min-height: 100%;
-    background-position: top center;
-    background-color: #2E3440;
+  min-width: 100%;
+  min-height: 100vh;
+  background-position: top center;
+  background-color: #2E3440;
 }
 
 body {
-    padding: 0%;
-    margin: 0%;
-    width: 100%;
-    height: 1054px;
-    background-color: #2E3440;
+  padding: 0%;
+  margin: 0%;
+
+  font-family: Rubik;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+
+  color: #D8DEE9;
+  background-color: #2E3440;
+  scroll-behavior: smooth;
 }
 
 a {
-    text-decoration: none;
-    color: #5E81AC;
-    font: 1em sans-serif;
+  text-decoration: none;
+  color: #5E81AC;
 }
 
-#projects {
-    width: 100px;
-    height: 100%;
-    text-align: center;
+#tab-bar {
+  user-select: none; /* supported by Chrome and Opera */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
 
-    background-color: #3B4252;
+  width: 100%;
+  height: auto;
+  display: flex;
+  position: fixed;
+  top: 0;
+  align-items: center;
+  justify-content: flex-end;
+  
+  background-color: #242933;
+}
 
-    border-bottom: solid #D8DEE9;
+.tab {
+  width: auto;
+  height: auto;
+  text-align: center;
+  padding: 4px 10px;
+
+  color: #D8DEE9;
+  background-color: #242933;
+  border-bottom: solid #5E81AC;
+}
+
+#main-body {
+  margin: 4rem auto 0px auto;
+  padding: 2rem 4rem;
+  border-radius: 10px 10px 0px 0px;
+  width : 60%;
+  height : 90vh;
+  background-color: #3B4252;
+
+  text-align: center;
 }
