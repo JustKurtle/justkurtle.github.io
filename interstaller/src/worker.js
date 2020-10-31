@@ -8,18 +8,23 @@ self.rand = () => {
   return rSeed[2];
 }
 
+const canvas = new OffscreenCanvas(0, 0);
+const ctx = canvas.getContext("2d");
+
 self.addEventListener('message', e => {
-  const [w, sy, xOff, yOff] = e.data;
+  let [w, h, sx, sy, xOff, yOff] = e.data;
+  sx *= w, sy *= h;
 
-  let canvas = new OffscreenCanvas(w, 1);
-  let ctx = canvas.getContext("2d");
+  canvas.width = w, canvas.height = h;
 
-  for(let i = 0;i <= w;i++) {
-    const [x, y] = [i % w, Math.floor(i / w)];
-    rSeed[0] = (y + yOff + sy) << 16 | (x + xOff);
+  let i = w * h;
+  while(i--) {
+    const [x, y] = [i % w, i / w | 0];
+    rSeed[0] = (y + yOff + sy) << 16 | (x + xOff + sx);
     ctx.fillStyle = `rgb(${[rand() % 256, rand() % 256, rand() % 256]})`
-    if(rand() % 1024 < 64) ctx.fillRect(x, y, 1, 1);
+    if(rand() % 1024 < 64) 
+      ctx.fillRect(x, y, 1, 1);
   }
 
-  self.postMessage([canvas.transferToImageBitmap(), 0, sy]);
+  self.postMessage([canvas.transferToImageBitmap(), sx, sy]);
 });

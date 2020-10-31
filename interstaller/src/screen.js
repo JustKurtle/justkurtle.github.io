@@ -4,6 +4,8 @@ self._Screen = class _Screen {
     this.paused = false;
   }
 
+
+
   handle(events) {}
   update(dt) {}
   draw(dt) {}
@@ -17,24 +19,19 @@ self.Menu = class Menu extends _Screen {
   }
 
   handle(events) {
-    while(events.length > 0) {
-      const e = events.pop(0);
-      switch(e.type) {
-        case "mousemove":
-          this.mouse.x = e.x / innerWidth;
-          this.mouse.y = e.y / innerHeight;
-          break;
+    let i = events.length;
+    while(i--) {
+      switch(events[i]) {
+        
+        
         default:
-          console.log(e);
-          break;
+          
       }
     }
   }
 
   update(dt) {
-    if(!this.paused) {
-
-    }
+    if(this.paused) return;
   }
 
   draw(dt) {

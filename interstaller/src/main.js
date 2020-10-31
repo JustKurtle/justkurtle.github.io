@@ -19,10 +19,10 @@ self.rand = () => {
     canvas.height = innerHeight;
   })();
 
-  let [xOff, yOff] = [1078, 1];
+  let [xOff, yOff] = [1, 1];
   
   const keys = [];
-  window.onkeydown = e => (!e.repeat && keys.indexOf(e.code) < 0) ? keys.push(e.code) : undefined;
+  window.onkeydown = e => (!e.repeat && keys.indexOf(e.code) < 0) ? keys.push(e.code) : undefined;  
   window.onkeyup = e => delete keys[keys.indexOf(e.code)];
 
   let clrColor = new Uint8Array([32,12,46]);
@@ -39,15 +39,12 @@ self.rand = () => {
   ];
 
   const sectors = [];
-  workers.forEach(e => e.addEventListener('message', e => {    
-    sectors.push(e.data);
-  }));
+  workers.forEach(e => e.addEventListener('message', e => sectors.push(e.data)));
 
   {
     let i = innerHeight;
-    console.log(i);
     while(i--) {
-      workers[i % workers.length].postMessage([innerWidth, i, xOff, yOff]);
+      workers[i % workers.length].postMessage([64, 1, 0, i / innerWidth | 0, xOff, yOff]);
     }
   }
 
