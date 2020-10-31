@@ -19,51 +19,68 @@ self.rand = () => {
     canvas.height = innerHeight;
   })();
 
-  let sectors = [];
-
-  let [xOff, yOff] = [1 << 4, 0];
-  addEventListener("keydown", e => {
-    switch(e.code) {
-      case "KeyA":
-        xOff -= 10;
-        break;
-      case "KeyD":
-        xOff += 10;
-        break;
-      case "KeyW":
-        yOff -= 10;
-        break;
-      case "KeyS":
-        yOff += 10;
-        break;
-    }
-  });
-
-  for(let i = 0;i <= 32 * 32;i++) {
-    const [x, y] = [i % 128, Math.floor(i / 128)];
-    rSeed[0] = y << 16 | x;
-    // r.fillStyle = `rgb(${[rand() % 256, rand() % 256, rand() % 256]})`
-    // if(rand() % 256 < 16)
-      // r.fillRect(x, y, 1, 1);
-  }
+  let [xOff, yOff] = [1078, 1];
+  
+  const keys = [];
+  window.onkeydown = e => (!e.repeat && keys.indexOf(e.code) < 0) ? keys.push(e.code) : undefined;
+  window.onkeyup = e => delete keys[keys.indexOf(e.code)];
 
   let clrColor = new Uint8Array([32,12,46]);
+  
+  let workers = [
+    new Worker('./src/worker.js'),
+    new Worker('./src/worker.js'),
+    new Worker('./src/worker.js'),
+    new Worker('./src/worker.js'),
+    new Worker('./src/worker.js'),
+    new Worker('./src/worker.js'),
+    new Worker('./src/worker.js'),
+    new Worker('./src/worker.js'),
+  ];
+
+  const sectors = [];
+  workers.forEach(e => e.addEventListener('message', e => {    
+    sectors.push(e.data);
+  }));
+
+  {
+    let i = innerHeight;
+    console.log(i);
+    while(i--) {
+      workers[i % workers.length].postMessage([innerWidth, i, xOff, yOff]);
+    }
+  }
 
   let then = 0;
   function main(now) {
     requestAnimationFrame(main);
     const dt = (now - then) * 0.001;
     then = now;
+    {
+      // let i = keys.length;
+      // while(i--) {
+      //   switch(keys[i]) {
+      //     case "KeyW":
+      //       yOff -= 1;
+      //       break;
+      //     case "KeyS":
+      //       yOff += 1;
+      //       break;
+      //     case "KeyA":
+      //       xOff -= 1;
+      //       break;
+      //     case "KeyD":
+      //       xOff += 1;
+      //       break;
+      //   }
+      // }
+    }
 
     ctx.fillStyle = `rgba(${clrColor}, 1)`;
     ctx.fillRect(0,0, innerWidth, innerHeight);
-
-    for(let i = 0;i <= 128 * 128;i++) {
-      const [x, y] = [i % 128, Math.floor(i / 128)];
-      rSeed[0] = (y + yOff) << 16 | (x + xOff);
-      ctx.fillStyle = `rgb(${[rand() % 256, rand() % 256, rand() % 256]})`
-      if(rand() % 256 < 32)
-        ctx.fillRect(x, y, 1, 1);
+    {
+      let i = sectors.length;
+      while(i--) ctx.drawImage(...sectors[i]);
     }
   }
   requestAnimationFrame(main);

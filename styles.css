@@ -10,6 +10,9 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #434C5E; 
 }
+::-webkit-scrollbar-corner {
+  background: #242933; 
+}
 
 
 html {
@@ -49,7 +52,7 @@ a {
   height: auto;
   display: flex;
   position: fixed;
-  top: 0;
+  top: 0px;
   align-items: center;
   justify-content: flex-end;
   
@@ -69,10 +72,10 @@ a {
 
 #main-body {
   margin: 4rem auto 0px auto;
-  padding: 2rem 4rem;
+  padding: 2rem 3rem;
   border-radius: 10px 10px 0px 0px;
-  width : 60%;
-  height : 90vh;
+  width: 60%;  
+  height: 90vh;
   background-color: #3B4252;
 
   text-align: center;

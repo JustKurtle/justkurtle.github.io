@@ -10,7 +10,7 @@ self.Vec3 = class Vec3 extends Float32Array{
   get z() { return this[2]; }
   set z(_v) { this[2] = _v; }
 
-  get mag() { return Math.hypot(this[0], this[1], this[2]); }
+  get mag() { return Math.hypot(...this); }
   get unit() { return new Vec3(this[0] / this.mag, this[1] / this.mag, this[2] / this.mag); }
   dot(that) { return (this[0] * that[0] + this[1] * that[1] + this[2] * that[2]); }
   cross(that) { return new Vec3(this[1] * that[2] - this[2] * that[1], this[2] * that[0] - this[0] * that[2], this[0] * that[1] - this[1] * that[0]); }
