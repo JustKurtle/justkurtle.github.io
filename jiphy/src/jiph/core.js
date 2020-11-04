@@ -131,4 +131,13 @@
     image.src = path;
     return texture;
   };
+
+  self.Camera = class Camera {
+    constructor() {
+      
+    }
+
+    lookAt;  
+    projection;
+  };
 }

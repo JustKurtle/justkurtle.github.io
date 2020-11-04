@@ -1,3 +1,5 @@
+const typeOf = v => v.constructor.name; 
+
 if(Math.Mat4f === undefined) {
   self.Vec3f = class Vec3f extends Float32Array {
     constructor(x = 0, y = 0, z = 0) {
@@ -13,14 +15,11 @@ if(Math.Mat4f === undefined) {
 
     get mag() { return Math.hypot(...this); }
     get unit() { const m = Math.hypot(...this); return new Vec3f(this[0] / m, this[1] / m, this[2] / m); }
+    get norm() { const m = Math.hypot(...this); this[0] /= m; this[1] /= m; this[2] /= m; return this; }
     dot(that) { return this[0] * that[0] + this[1] * that[1] + this[2] * that[2]; }
     cross(that) { return new Vec3f(this[1] * that[2] - this[2] * that[1], this[2] * that[0] - this[0] * that[2], this[0] * that[1] - this[1] * that[0]); }
-
     m(that, out = this) {
-      switch(that.constructor.name) {
-        case "Number":
-          for(let i in this) out[i] = this[i] * that;
-          break;
+      switch(typeOf(that)) {
         case "Mat4f":
           for(let i in this)
             out[i] =
@@ -29,13 +28,16 @@ if(Math.Mat4f === undefined) {
               that[i%4+8] * this[2] +
               that[i%4+12] * 1;
           break;
+        case "Number":
+          for(let i in this) out[i] = this[i] * that;
+          break;
         default:
           for(let i in that) out[i] = this[i] * that[i];
       }
       return out;
     }
     d(that, out = this) {
-      switch(that.constructor.name) {
+      switch(typeOf(that)) {
         case "Number":
           for(let i in this) out[i] = this[i] / that;
           break;
@@ -45,7 +47,7 @@ if(Math.Mat4f === undefined) {
       return out;
     }
     a(that, out = this) {
-      switch(that.constructor.name) {
+      switch(typeOf(that)) {
         case "Number":
           for(let i in this) out[i] = this[i] + that;
           break;
@@ -55,7 +57,7 @@ if(Math.Mat4f === undefined) {
       return out;
     }
     s(that, out = this) {
-      switch(that.constructor.name) {
+      switch(typeOf(that)) {
         case "Number":
           for(let i in this) out[i] = this[i] - that;
           break;
@@ -81,7 +83,7 @@ if(Math.Mat4f === undefined) {
     set w(_v) { this[3] = _v; }
 
     get unit() {
-      const m = Math.hypot(...this);
+      const m = this[0]*this[0] + this[1]*this[1] + this[2]*this[2] + this[3]*this[3];
       return new Quat(this[0] / m, this[1] / m, this[2] / m, this[3] / m);
     } 
 
@@ -96,41 +98,44 @@ if(Math.Mat4f === undefined) {
     i(out = this) {
       const [x, y, z, w] = this;
       let dot = x*x + y*y + z*z + w*w;
-      let iDot = dot ? 1 / dot : 0;
-      out[0] = -x * iDot;
-      out[1] = -y * iDot;
-      out[2] = -z * iDot;
-      out[3] =  w * iDot;
+      let d = dot ? 1 / dot : 0;
+      out[0] = -x * d;
+      out[1] = -y * d;
+      out[2] = -z * d;
+      out[3] =  w * d;
       return out;
     }
-    r(rad = [], out = this) {
-      if(rad[2]) {
-        rad[2] *= 0.5;
-        const [x, y, z, w] = this;
-        const s = Math.sin(rad[2]), c = Math.cos(rad[2]);
-        out[0] = x * c + y * s;
-        out[1] = y * c - x * s;
-        out[2] = z * c + w * s;
-        out[3] = w * c - z * s;
-      }   
-      if(rad[1]) {
-        rad[1] *= 0.5;
-        const [x, y, z, w] = this;
-        const s = Math.sin(rad[1]), c = Math.cos(rad[1]);
-        out[0] = x * c - z * s;
-        out[1] = y * c + w * s;
-        out[2] = z * c + x * s;
-        out[3] = w * c - y * s;
-      }  
-      if(rad[0]) {
-        rad[0] *= 0.5;
-        const [x, y, z, w] = this;
-        const s = Math.sin(rad[0]), c = Math.cos(rad[0]);
-        out[0] = x * c + w * s;
-        out[1] = y * c + z * s;
-        out[2] = z * c - y * s;
-        out[3] = w * c - x * s;
-      }
+    rz(rad, out = this) {
+      rad *= 0.5;
+      const [x, y, z, w] = this;
+      const s = Math.sin(rad);
+      const c = Math.cos(rad);
+      out[0] = x * c + y * s;
+      out[1] = y * c - x * s;
+      out[2] = z * c + w * s;
+      out[3] = w * c - z * s;
+      return out; 
+    }
+    ry(rad, out = this) {
+      rad *= 0.5;
+      const [x, y, z, w] = this;
+      const s = Math.sin(rad);
+      const c = Math.cos(rad);
+      out[0] = x * c - z * s;
+      out[1] = y * c + w * s;
+      out[2] = z * c + x * s;
+      out[3] = w * c - y * s;
+      return out;
+    }  
+    rx(rad, out = this) {
+      rad *= 0.5;
+      const [x, y, z, w] = this;
+      const s = Math.sin(rad);
+      const c = Math.cos(rad);
+      out[0] = x * c + w * s;
+      out[1] = y * c + z * s;
+      out[2] = z * c - y * s;
+      out[3] = w * c - x * s;
       return out;
     }
   };
@@ -257,7 +262,7 @@ if(Math.Mat4f === undefined) {
       return out;
     }
     lookTo(eye, dir, up = new Vec3f(0,1,0), out = this) {
-      const f = dir.unit;
+      const f = dir.unit.m(-1);
       const r = up.cross(f).unit;
       const u = f.cross(r);
       out.set([
@@ -271,13 +276,13 @@ if(Math.Mat4f === undefined) {
     perspective(near, far, fov, aspect, out = this) {
       const x = 1 / Math.tan(fov / 2 * Math.PI / 180);
       const y = aspect / Math.tan(fov / 2 * Math.PI / 180);
-      const z = far / (far - near);
-      const w = far * near / (far - near);
+      const z = -far / (far - near);
+      const w = -far * near / (far - near);
       out.set([
         x, 0, 0, 0,
         0, y, 0, 0,
-        0, 0, z,-1,
-        0, 0, w, 0
+        0, 0, z, w,
+        0, 0,-1, 0
       ]);
       return out;
     }
