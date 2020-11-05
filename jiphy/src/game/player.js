@@ -7,11 +7,11 @@ self.Player = class Player {
   constructor(pos, box) {
     this.box = box;
     this.pos = pos;
-
+    this.vel = new Vec3f();
     this.lookDir = new Vec3f(0,0,1);
-
     this.box.srcPos = this.pos;
 
+    
     let cRad = [0, 0];
     self.onmousemove = e => {
       let amp = 0.002;
@@ -46,41 +46,53 @@ self.Player = class Player {
     self.onkeyup = e => delete keys[keys.indexOf(e.code)];
   }
 
-  update(dt = 1) {
-    const f = this.lookDir.unit.m([1,0,1]);
+  #canJump = false;
+
+  update(dt = 1, { boxes }) {
+    const f = this.lookDir.m([1,0,1], new Vec3f()).unit;
     const u = new Vec3f(0,1,0);
     const r = u.cross(f);
     
-    f.m(dt * 4);
-    r.m(dt * 4);
-    u.m(dt * 4);
+    f.m(dt * 2);
+    r.m(dt * 2);
+    u.m(dt * 2);
 
     {
       let i = keys.length;
       while(i--) {
         switch(keys[i]) {
           case "KeyW":
-            this.pos.a(f);
+            this.vel.a(f);
             break;
           case "KeyS":
-            this.pos.s(f);
+            this.vel.s(f);
             break;
           case "KeyA":
-            this.pos.a(r);
+            this.vel.a(r);
             break;
           case "KeyD":
-            this.pos.s(r);
+            this.vel.s(r);
             break;
-          case "KeyQ":
-            this.pos.s(u);
-            break;
-          case "KeyE":
-            this.pos.a(u);
+          case "Space":
+            if(this.#canJump)
+              this.vel.y += 0.5;
             break;
         }
       }
     }
+    
+    this.#canJump = false;
 
+    for(let b of boxes) {
+      if(this.box.intersect(b).mag !== 0) {
+        this.#canJump = true;
+        this.vel.a(this.box.intersect(b));
+        this.pos.a(this.box.intersect(b));
+      }
+    }
+
+    this.vel.y -= 0.025;
+    this.pos.a(this.vel.m([0.8,0.9,0.8]));
   }
 
   draw(gl, { camera }) {

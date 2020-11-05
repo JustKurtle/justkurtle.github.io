@@ -44,7 +44,7 @@ self.rand = () => {
   {
     let i = innerHeight;
     while(i--) {
-      workers[i % workers.length].postMessage([64, 1, 0, i / innerWidth | 0, xOff, yOff]);
+      workers[i % workers.length].postMessage([innerWidth, 1, 0, i, xOff, yOff]);
     }
   }
 

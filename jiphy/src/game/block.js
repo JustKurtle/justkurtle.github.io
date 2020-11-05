@@ -114,7 +114,7 @@ self.Shader = class Shader {
 
 self.Block = class Block {
   constructor(x, y, z, material) {
-    this.box = new jBox(new Vec3f(x, y, z), 1, 1, 1,-0.5,-0.5,-0.5);
+    this.box = new jBox(new Vec3f(x, y, z), 1, 1, 1,-0.5, 0.5,-0.5);
     this.sMat = material;
   }
 
@@ -123,7 +123,7 @@ self.Block = class Block {
   }
 
   draw(gl) {
-    this.sMat.modelViewMatrix.t([this.box.x,this.box.y,this.box.z]);
+    this.sMat.modelViewMatrix.t(this.box.srcPos);
     this.sMat.use(gl);
   }
 };
