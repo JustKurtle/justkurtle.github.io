@@ -6,7 +6,7 @@
     if(O1 || O2) {
       const min1 = oMax - sMin,
             min2 = oMin - sMax;
-      return (Math.abs(min1) <= Math.abs(min2)) ? min1 : min2;
+      return (Math.abs(min1), Math.abs(min2)) ? min1 : min2;
     }
     return null;
   }
@@ -14,14 +14,14 @@
   self.jRect = class jRect {
     constructor(srcPos, w, h, xOff = 0, yOff = 0) {
       this.srcPos = srcPos;
-      this.offset = new Vec3f(xOff, yOff);
-
+      this.xOff = xOff; 
+      this.yOff = yOff;
       this.w = w;
       this.h = h;
     }
 
-    get x() { return this.srcPos.x + this.offset.x; }
-    get y() { return this.srcPos.y + this.offset.y; }
+    get x() { return this.srcPos.x + this.xOff; }
+    get y() { return this.srcPos.y + this.yOff; }
     get xm() { return this.x + this.w; }
     get ym() { return this.y + this.h; }
 
@@ -38,20 +38,27 @@
           return new Vec3f();
       }
     }
+    intersects(that) {
+      return check(this.x, this.xm, that.x, that.xm) && check(this.y, this.ym, that.y, that.ym);
+    }
+    contains(that) {
+      return check(this.x, this.xm - that.w, that.x, that.x) && check(this.y, this.ym - that.h, that.y, that.y);
+    }
   };
   self.jBox = class jRect {
     constructor(srcPos, w, h, d, xOff = 0, yOff = 0, zOff = 0) {
       this.srcPos = srcPos;
-      this.offset = new Vec3f(xOff, yOff, zOff);
-
+      this.xOff = xOff;
+      this.yOff = yOff;
+      this.zOff = zOff;
       this.w = w;
       this.h = h;
       this.d = d;
     }
 
-    get x() { return this.srcPos.x + this.offset.x; }
-    get y() { return this.srcPos.y + this.offset.y; }
-    get z() { return this.srcPos.z + this.offset.z; }
+    get x() { return this.srcPos.x + this.xOff; }
+    get y() { return this.srcPos.y + this.yOff; }
+    get z() { return this.srcPos.z + this.zOff; }
     get xm() { return this.x + this.w; }
     get ym() { return this.y + this.h; }
     get zm() { return this.z + this.d; }
@@ -71,6 +78,16 @@
         default:
           return new Vec3f();
       }
+    }
+    intersects(that) {
+      return check(this.x, this.xm, that.x, that.xm) &&
+        check(this.y, this.ym, that.y, that.ym) &&
+        check(this.z, this.zm, that.z, that.zm);
+    }
+    contains(that) {
+      return check(this.x, this.xm - that.w, that.x, that.x) && 
+        check(this.y, this.ym - that.h, that.y, that.y) && 
+        check(this.z, this.zm - that.d, that.z, that.z);
     }
   };
 }
@@ -133,9 +150,9 @@
   };
 
   self.Camera = class Camera {
-    constructor() {
-      
-    }
+    constructor() {}
+
+    #angle;
 
     lookAt;  
     projection;

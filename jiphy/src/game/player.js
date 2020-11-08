@@ -1,7 +1,9 @@
 import "../jiph/core.js"
 import "../jiph/math.js"
 
-const keys = [];
+self.keys = new Map();
+self.onkeydown = e => keys.set(e.code, e);
+self.onkeyup = e => keys.delete(e.code);
 
 self.Player = class Player {
   constructor(pos, box) {
@@ -11,8 +13,7 @@ self.Player = class Player {
     this.lookDir = new Vec3f(0,0,1);
     this.box.srcPos = this.pos;
 
-    
-    let cRad = [0, 0];
+    let cRad = [Math.PI, 0];
     self.onmousemove = e => {
       let amp = 0.002;
       let angChange = [e.movementX * amp, e.movementY * amp];
@@ -42,57 +43,49 @@ self.Player = class Player {
 
       self.onmousemove(e);
     };
-    self.onkeydown = e => (!e.repeat && keys.indexOf(e.code) < 0) ? keys.push(e.code) : undefined;
-    self.onkeyup = e => delete keys[keys.indexOf(e.code)];
   }
 
-  #canJump = false;
+  #grounded = false;
 
-  update(dt = 1, { boxes }) {
-    const f = this.lookDir.m([1,0,1], new Vec3f()).unit;
-    const u = new Vec3f(0,1,0);
-    const r = u.cross(f);
-    
-    f.m(dt * 2);
-    r.m(dt * 2);
-    u.m(dt * 2);
+  update(dt = 1, { boxTree }) {
+    const f = new Vec3f(this.lookDir.x, 0, this.lookDir.z).unit;
+    const r = new Vec3f(this.lookDir.z, 0,-this.lookDir.x).unit;
 
     {
-      let i = keys.length;
-      while(i--) {
-        switch(keys[i]) {
+      let movement = new Vec3f(0,0,0);
+      for(let [k, v] of keys) {
+        switch(k) {
           case "KeyW":
-            this.vel.a(f);
+            movement.a(f);
             break;
           case "KeyS":
-            this.vel.s(f);
+            movement.s(f);
             break;
           case "KeyA":
-            this.vel.a(r);
+            movement.a(r);
             break;
           case "KeyD":
-            this.vel.s(r);
+            movement.s(r);
             break;
           case "Space":
-            if(this.#canJump)
-              this.vel.y += 0.5;
+            if(this.#grounded) this.vel.y = 0.33;
             break;
         }
       }
+      if(movement.mag !== 0) this.vel.a(movement.unit.m(2 * dt));
     }
-    
-    this.#canJump = false;
 
+    this.vel.y -= (this.#grounded) ? 0 : 1 * dt;
+    this.pos.a(this.vel.m([0.82,0.98,0.82]));
+
+    this.#grounded = false;
+    let boxes = boxTree.get(this.pos, [4,4,4]);
     for(let b of boxes) {
-      if(this.box.intersect(b).mag !== 0) {
-        this.#canJump = true;
-        this.vel.a(this.box.intersect(b));
-        this.pos.a(this.box.intersect(b));
-      }
+      let overlap = this.box.intersect(b);
+      if(overlap.y > 0) this.#grounded = true;
+      this.vel.a(overlap);
+      this.pos.a(overlap);
     }
-
-    this.vel.y -= 0.025;
-    this.pos.a(this.vel.m([0.8,0.9,0.8]));
   }
 
   draw(gl, { camera }) {

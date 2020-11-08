@@ -28,7 +28,7 @@ self.Shader = class Shader {
       }`
     );
 
-    this.sVar = {
+    this.variables = {
       "aTextureCoord": gl.getAttribLocation(this.shader, "aTextureCoord"),
       "aVertexPosition": gl.getAttribLocation(this.shader, "aVertexPosition"),
       "uModelViewMatrix": gl.getUniformLocation(this.shader, "uModelViewMatrix"),
@@ -39,12 +39,12 @@ self.Shader = class Shader {
 
     {
       const tcArray = new Float32Array([
-        0,0,  1,0,  1,1,  0,1,
-        0,0,  1,0,  1,1,  0,1,
-        0,0,  1,0,  1,1,  0,1,
-        0,0,  1,0,  1,1,  0,1,
-        0,0,  1,0,  1,1,  0,1,
-        0,0,  1,0,  1,1,  0,1,
+        0,0,  1,0,  1,1,  0,1, // +z
+        0,0,  1,0,  1,1,  0,1, // -z
+        0,0,  1,0,  1,1,  0,1, // +y
+        0,0,  1,0,  1,1,  0,1, // -y
+        0,0,  1,0,  1,1,  0,1, // +x
+        0,0,  1,0,  1,1,  0,1, // -x
       ]);
       this.tcBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, this.tcBuffer);
@@ -52,16 +52,13 @@ self.Shader = class Shader {
     }
     {
       const vArray = new Float32Array([
-        0,0,1,  1,0,1,  1,1,1,  0,1,1,
-        0,1,0,  1,1,0,  1,0,0,  0,0,0,
-
-        0,0,0,  1,0,0,  1,0,1,  0,0,1,
-        0,1,1,  1,1,1,  1,1,0,  0,1,0,
-
-        1,0,0,  1,1,0,  1,1,1,  1,0,1,
-        0,0,1,  0,1,1,  0,1,0,  0,0,0,
+        0,0,1,  1,0,1,  1,1,1,  0,1,1, // +z
+        0,1,0,  1,1,0,  1,0,0,  0,0,0, // -z
+        0,0,0,  1,0,0,  1,0,1,  0,0,1, // +y
+        0,1,1,  1,1,1,  1,1,0,  0,1,0, // -y
+        1,0,0,  1,1,0,  1,1,1,  1,0,1, // +x
+        0,0,1,  0,1,1,  0,1,0,  0,0,0, // -x
       ]);
-      for(let i in vArray) { vArray[i] -= 0.5; }
       this.vBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, vArray, gl.STATIC_DRAW);
@@ -93,29 +90,29 @@ self.Shader = class Shader {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    gl.uniform1i(this.sVar.uSampler, 0);
+    gl.uniform1i(this.variables.uSampler, 0);
 
-    gl.uniformMatrix4fv(this.sVar.uModelViewMatrix, false, this.modelViewMatrix);
-    gl.uniformMatrix4fv(this.sVar.uProjectionMatrix, false, this.projectionMatrix);
-    gl.uniformMatrix4fv(this.sVar.uLookAtMatrix, false, this.lookAtMatrix);
+    gl.uniformMatrix4fv(this.variables.uModelViewMatrix, false, this.modelViewMatrix);
+    gl.uniformMatrix4fv(this.variables.uProjectionMatrix, false, this.projectionMatrix);
+    gl.uniformMatrix4fv(this.variables.uLookAtMatrix, false, this.lookAtMatrix);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
-    gl.enableVertexAttribArray(this.sVar.aVertexPosition);
-    gl.vertexAttribPointer(this.sVar.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(this.variables.aVertexPosition);
+    gl.vertexAttribPointer(this.variables.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.tcBuffer);
-    gl.enableVertexAttribArray(this.sVar.aTextureCoord);
-    gl.vertexAttribPointer(this.sVar.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(this.variables.aTextureCoord);
+    gl.vertexAttribPointer(this.variables.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.iBuffer);
     gl.drawElements(gl.TRIANGLES, this.iBufferLength, gl.UNSIGNED_SHORT, 0);
   }
-};
+}
 
-self.Block = class Block {
+self.Block = class Chunk {
   constructor(x, y, z, material) {
-    this.box = new jBox(new Vec3f(x, y, z), 1, 1, 1,-0.5, 0.5,-0.5);
-    this.sMat = material;
+    this.box = new jBox(new Vec3f(x, y, z), 1, 1, 1);
+    this.shaderMat = material;
   }
 
   update(dt = 1) {
@@ -123,7 +120,7 @@ self.Block = class Block {
   }
 
   draw(gl) {
-    this.sMat.modelViewMatrix.t(this.box.srcPos);
-    this.sMat.use(gl);
+    this.shaderMat.modelViewMatrix.t(this.box.srcPos);
+    this.shaderMat.use(gl);
   }
 };
