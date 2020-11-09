@@ -26,6 +26,7 @@ import "./trees.js"
     }
   }
   let findPos = new Vec3();
+  let searchSize = [32, 32];
   window.onmousemove = e => {
     findPos.x = e.x;
     findPos.y = e.y;
@@ -34,7 +35,11 @@ import "./trees.js"
       tree.set([x,y],[w,h], new AABB(x,y,w,h));
     }
   };
-  let searchSize = [32, 32];
+  window.onmousewheel = e => {
+    if(searchSize[0] < 0 && e.wheelDelta < 0) return;
+    searchSize[0] += e.wheelDelta / 10;
+    searchSize[1] += e.wheelDelta / 10;
+  };
 
   let then = 0;
   function main(now) {
@@ -45,7 +50,7 @@ import "./trees.js"
     ctx.fillStyle = `rgba(${clrColor}, 1)`;
     ctx.fillRect(0,0, innerWidth, innerHeight);
 
-    let points = tree.get(findPos,searchSize);
+    let points = tree.get(findPos, searchSize);
     for(let v of points) {
       ctx.fillStyle = "#00FF98";
       ctx.fillRect(v.x,v.y,v.w,v.h);
