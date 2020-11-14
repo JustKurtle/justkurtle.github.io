@@ -1,4 +1,11 @@
 self.QuadTree = class QuadTree {
+  /**
+   * creates a QuadTree
+   * 
+   * @param {number[2]} center the center of the tree
+   * @param {number[2]} size the size of the tree
+   * @param {number} depth how many times to branch
+   */
   constructor(center, size, depth = 16) {
     this.#center = center;
     this.#size = size;
@@ -11,6 +18,13 @@ self.QuadTree = class QuadTree {
   #nodes = [];
   #values = [];
 
+  /**
+   * gets all values with keys inside the range
+   * 
+   * @param {number[2]} center the center point of the search
+   * @param {number[2]} size the size of the search
+   * @returns {any[]} all values that fit the search 
+   */
   get(center, size) {
     let out = [];
     if(this.#intersects(center, size)) {
@@ -24,6 +38,14 @@ self.QuadTree = class QuadTree {
     }
     return out;
   }
+  /**
+   * sets a value to a key as a position and size
+   * 
+   * @param {number[2]} center the center point of the key
+   * @param {number[2]} size the size of the key
+   * @param {any} value the value to be assigned
+   * @returns {boolean} success or failure 
+   */
   set(center, size, value) {
     if(this.#contains(center, size)) {
       if(!!this.#depth && !this.#nodes.length) this.#split();

@@ -50,7 +50,7 @@ if(self.Octree === undefined) {
     }
 
     // Private utils
-    #split() {    
+    #split() {
       let size = [this.#size[0] / 2, this.#size[1] / 2, this.#size[2] / 2];
       let [x,_x] = [this.#center[0] + size[0], this.#center[0] - size[0]];
       let [y,_y] = [this.#center[1] + size[1], this.#center[1] - size[1]];
@@ -70,8 +70,8 @@ if(self.Octree === undefined) {
         this.#center[0] + this.#size[0] <= center[0] - size[0] ||
         this.#center[1] - this.#size[1] >= center[1] + size[1] ||
         this.#center[1] + this.#size[1] <= center[1] - size[1] ||
-        this.#center[3] - this.#size[3] >= center[3] + size[3] ||
-        this.#center[3] + this.#size[3] <= center[3] - size[3]
+        this.#center[2] - this.#size[2] >= center[2] + size[2] ||
+        this.#center[2] + this.#size[2] <= center[2] - size[2]
       );
     }
     #contains(center, size) {

@@ -7,8 +7,6 @@ self.jUI_RESIZEABLE = 1;
 self.jUI_MOVEABLE = 2;
 self.jUI_HIDEABLE = 4;
 
-const keys = [];
-
 // the class, I made it to be overridden but I also want it
 // to be able to function on its own to a minimal extent
 self.jUI = class jUI {

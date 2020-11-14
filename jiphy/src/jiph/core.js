@@ -6,7 +6,7 @@
     if(O1 || O2) {
       const min1 = oMax - sMin,
             min2 = oMin - sMax;
-      return (Math.abs(min1), Math.abs(min2)) ? min1 : min2;
+      return (Math.abs(min1) <= Math.abs(min2)) ? min1 : min2;
     }
     return null;
   }
@@ -45,7 +45,11 @@
       return check(this.x, this.xm - that.w, that.x, that.x) && check(this.y, this.ym - that.h, that.y, that.y);
     }
   };
-  self.jBox = class jRect {
+  // self.jLine = class jLine {
+
+  // };
+
+  self.jBox = class jBox {
     constructor(srcPos, w, h, d, xOff = 0, yOff = 0, zOff = 0) {
       this.srcPos = srcPos;
       this.xOff = xOff;
@@ -56,9 +60,9 @@
       this.d = d;
     }
 
-    get x() { return this.srcPos.x + this.xOff; }
-    get y() { return this.srcPos.y + this.yOff; }
-    get z() { return this.srcPos.z + this.zOff; }
+    get x() { return this.srcPos[0] + this.xOff; }
+    get y() { return this.srcPos[1] + this.yOff; }
+    get z() { return this.srcPos[2] + this.zOff; }
     get xm() { return this.x + this.w; }
     get ym() { return this.y + this.h; }
     get zm() { return this.z + this.d; }
@@ -80,50 +84,70 @@
       }
     }
     intersects(that) {
-      return check(this.x, this.xm, that.x, that.xm) &&
-        check(this.y, this.ym, that.y, that.ym) &&
-        check(this.z, this.zm, that.z, that.zm);
+      return !(
+        this.x  >= that.xm ||
+        this.xm <= that.x  ||
+        this.y  >= that.ym ||
+        this.ym <= that.y  ||
+        this.z  >= that.zm ||
+        this.zm <= that.z
+      );
     }
     contains(that) {
-      return check(this.x, this.xm - that.w, that.x, that.x) && 
-        check(this.y, this.ym - that.h, that.y, that.y) && 
-        check(this.z, this.zm - that.d, that.z, that.z);
+      return (
+        this.x  <= that.x ||
+        this.xm >= that.xm  ||
+        this.y  <= that.y ||
+        this.ym >= that.ym  ||
+        this.z  <= that.z ||
+        this.zm >= that.zm
+      );
+    }
+  };
+  self.jRay = class jRay {
+    constructor(src, dir) {
+      this.src = src;
+      this.dir = dir;
+    }
+
+    get x() { return this.src[0]; }
+    get y() { return this.src[1]; }
+    get z() { return this.src[2]; }
+    get xm() { return this.x + this.dir[0]; }
+    get ym() { return this.y + this.dir[1]; }
+    get zm() { return this.z + this.dir[2]; }
+
+    intersect(that) {
+      const x = check(this.x, this.xm, that.x, that.xm);
+      const y = check(this.y, this.ym, that.y, that.ym);
+      const z = check(this.z, this.zm, that.z, that.zm);
+
+      switch(Math.min(x * x, y * y, z * z)) {
+        case x * x:
+          return new Vec3f(x, 0, 0);
+        case y * y:
+          return new Vec3f(0, y, 0);
+        case z * z:
+          return new Vec3f(0, 0, z);
+        default:
+          return new Vec3f();
+      }
+    }
+    intersects(that) {
+      return !(
+        this.x  >= that.xm ||
+        this.xm <= that.x  ||
+        this.y  >= that.ym ||
+        this.ym <= that.y  ||
+        this.z  >= that.zm ||
+        this.zm <= that.z
+      );
     }
   };
 }
 
 // gl things
 {
-  self.jLoadShader = function(gl, vertexSrc, fragmentSrc) {
-    function compileShader(gl, type, source) {
-      const shader = gl.createShader(type);
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        const log = gl.getShaderInfoLog(shader);
-        gl.deleteShader(shader);
-        throw('An error occurred compiling the shaders: ' + log);
-      }
-
-      return shader;
-    }
-
-    const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexSrc);
-    const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSrc);
-
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-      const log = gl.getShaderInfoLog(shaderProgram);
-      throw('Unable to initialize the shader program: ' + log);
-    }
-    return shaderProgram;
-  };
-
   self.jLoadTexture = function(gl, path) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -148,13 +172,153 @@
     image.src = path;
     return texture;
   };
+  self.jShader = function(gl, source) {
+    const vShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vShader, source[0]);
+    gl.compileShader(vShader);
+    if (!gl.getShaderParameter(vShader, gl.COMPILE_STATUS)) {
+      console.error(gl.getShaderInfoLog(vShader));
+      gl.deleteShader(vShader);
+      return -1;
+    }
 
-  self.Camera = class Camera {
-    constructor() {}
+    const fShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fShader, source[1]);
+    gl.compileShader(fShader);
+    if (!gl.getShaderParameter(fShader, gl.COMPILE_STATUS)) {
+      console.error(gl.getShaderInfoLog(fShader));
+      gl.deleteShader(fShader);
+      return -2;
+    }
 
-    #angle;
+    const program = gl.createProgram();
+    gl.attachShader(program, vShader);
+    gl.attachShader(program, fShader);
+    gl.linkProgram(program);
 
-    lookAt;  
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error(gl.getShaderInfoLog(program));
+      return -3;
+    }
+
+    let setters = {};
+    {
+      let i = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+      while(i--) {
+        const info = gl.getActiveAttrib(program, i);
+        const location = gl.getAttribLocation(program, info.name);
+        setters[info.name] = b => {
+          if (b.value) {
+            gl.disableVertexAttribArray(location);
+            gl['vertexAttrib'+b.value.length+'fv'](location, b.value);
+          } else {
+            gl.bindBuffer(gl.ARRAY_BUFFER, b.buffer);
+            gl.enableVertexAttribArray(location);
+            gl.vertexAttribPointer(location, b.size, b.type || gl.FLOAT, b.normalize || false, b.stride || 0, b.offset || 0);
+          }
+        }
+      }
+    }
+
+    {
+      let i = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+      while(i--) {
+        const info = gl.getActiveUniform(program, i);
+        const location = gl.getUniformLocation(program, info.name);
+        switch(info.type) {
+          case gl.FLOAT:
+            setters[info.name] = v => gl.uniform1fv(location, v.length >= 0 ? v : [v]);
+            break;
+          case gl.FLOAT_VEC2:
+            setters[info.name] = v => gl.uniform2fv(location, v);
+            break;
+          case gl.FLOAT_VEC3:
+            setters[info.name] = v => gl.uniform3fv(location, v);
+            break;
+          case gl.FLOAT_VEC4:
+            setters[info.name] = v => gl.uniform4fv(location, v);
+            break;
+          case gl.INT:
+          case gl.BOOL:
+            setters[info.name] = v => gl.uniform1iv(location, v.length >= 0 ? v : [v]);
+            break;
+          case gl.INT_VEC2:
+          case gl.BOOL_VEC2:
+            setters[info.name] = v => gl.uniform2iv(location, v);
+            break;
+          case gl.INT_VEC3:
+          case gl.BOOL_VEC3:
+            setters[info.name] = v => gl.uniform3iv(location, v);
+            break;
+          case gl.INT_VEC4:
+          case gl.BOOL_VEC4:
+            setters[info.name] = v => gl.uniform4iv(location, v);
+            break;
+          case gl.FLOAT_MAT2:
+            setters[info.name] = v => gl.uniformMatrix2fv(location, false, v);
+            break;
+          case gl.FLOAT_MAT3:
+            setters[info.name] = v => gl.uniformMatrix3fv(location, false, v);
+            break;
+          case gl.FLOAT_MAT4:
+            setters[info.name] = v => gl.uniformMatrix4fv(location, false, v);
+            break;
+          case gl.SAMPLER_2D:
+          case gl.SAMPLER_CUBE:
+            setters[info.name] = (v) => {
+              gl.uniform1i(location, 0);
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, v);
+            };
+            break;
+        }
+      }
+    }
+    return {
+      program: program,
+      set(values) {
+        gl.useProgram(program);
+        for(let i in values) if(setters[i]) setters[i](values[i]);
+      }
+    }
+  };
+  self.jBuffers = (gl, arrays) => {
+    let out = {};
+    for(let i in arrays) { 
+      out[i] = {...arrays[i]};
+      delete(out[i].array);
+      out[i].buffer = gl.createBuffer();
+      if(i === 'index') {
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, out[i].buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arrays[i].array), gl.STATIC_DRAW);
+      } else {
+        gl.bindBuffer(gl.ARRAY_BUFFER, out[i].buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arrays[i].array), gl.STATIC_DRAW);
+      }
+    }
+    return out;
+  };
+
+  // todo
+  self.jScene = class Scene {
+    constructor(gl) {
+      gl.enable(gl.CULL_FACE);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LEQUAL);
+      gl.clearColor(0.0, 0.2, 0.5, 1.0);
+      gl.clearDepth(1.0);
+    }
+
+    clear(gl) {
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    }
+
+    draw(gl) {
+      
+    }
+  };
+  self.jCamera = class Camera {
     projection;
+    lookAt;
   };
 }

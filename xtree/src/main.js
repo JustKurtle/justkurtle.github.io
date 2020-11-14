@@ -19,7 +19,7 @@ import "./trees.js"
   
   let [w, h] = [2, 2];
   {
-    let i = 4098 * 4;
+    let i = 16 ** 4;
     while(i--) {
       let [x, y] = [Math.random()*innerWidth-0.5, Math.random()*innerHeight-0.5];
       tree.set([x,y],[1,1],new AABB(x,y,1,1));
@@ -36,7 +36,10 @@ import "./trees.js"
     }
   };
   window.onmousewheel = e => {
-    if(searchSize[0] < 0 && e.wheelDelta < 0) return;
+    if(searchSize[0] + e.wheelDelta < 0) {
+      searchSize = [0, 0];
+      return;
+    }
     searchSize[0] += e.wheelDelta / 10;
     searchSize[1] += e.wheelDelta / 10;
   };
