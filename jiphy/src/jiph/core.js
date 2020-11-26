@@ -12,46 +12,126 @@
   }
 
   self.jRect = class jRect {
-    constructor(srcPos, w, h, xOff = 0, yOff = 0) {
-      this.srcPos = srcPos;
+    constructor(src, w, h, xOff = 0, yOff = 0) {
+      this.src = src;
       this.xOff = xOff; 
       this.yOff = yOff;
       this.w = w;
       this.h = h;
     }
 
-    get x() { return this.srcPos.x + this.xOff; }
-    get y() { return this.srcPos.y + this.yOff; }
+    get x() { return this.src.x + this.xOff; }
+    get y() { return this.src.y + this.yOff; }
     get xm() { return this.x + this.w; }
     get ym() { return this.y + this.h; }
 
-    intersect(that) {
+    overlap(that) {
       const x = check(this.x, this.xm, that.x, that.xm);
       const y = check(this.y, this.ym, that.y, that.ym);
 
       switch(Math.min(x * x, y * y)) {
         case x * x:
-          return new Vec3f(x, 0);
+          return new Vec3(x, 0);
         case y * y:
-          return new Vec3f(0, y);
+          return new Vec3(0, y);
         default:
-          return new Vec3f();
+          return new Vec3();
       }
     }
-    intersects(that) {
-      return check(this.x, this.xm, that.x, that.xm) && check(this.y, this.ym, that.y, that.ym);
+    overlaps(that) {
+      return !(
+        this.x  >= that.xm ||
+        this.xm <= that.x  ||
+        this.y  >= that.ym ||
+        this.ym <= that.y
+      );
     }
     contains(that) {
-      return check(this.x, this.xm - that.w, that.x, that.x) && check(this.y, this.ym - that.h, that.y, that.y);
+      return (
+        this.x  <= that.x  ||
+        this.xm >= that.xm ||
+        this.y  <= that.y  ||
+        this.ym >= that.ym
+      );
     }
   };
-  // self.jLine = class jLine {
+  self.jLine = class jLine {
+    constructor(src, dir) {
+      this.src = src;
+      this.dir = dir;
+    }
 
-  // };
+    get x() { return this.src[0]; }
+    get y() { return this.src[1]; }
+    get xm() { return this.x + this.dir[0]; }
+    get ym() { return this.y + this.dir[1]; }
+
+    overlap(that) {
+      if (
+        Math.min(this.x, this.xm) >= that.xm ||
+        Math.max(this.x, this.xm) <= that.x  ||
+        Math.min(this.y, this.ym) >= that.ym ||
+        Math.max(this.y, this.ym) <= that.y
+      ) return false;
+      const x = (that.y - this.y) * (this.dir.x / this.dir.y) + this.x;
+      const y = (that.x - this.x) * (this.dir.y / this.dir.x) + this.y;
+      const xm = (that.ym - this.y) * (this.dir.x / this.dir.y) + this.x;
+      const ym = (that.xm - this.x) * (this.dir.y / this.dir.x) + this.y;
+  
+      if(!(
+        x >= that.xm ||
+        x <= that.x
+      )) {
+        return 2;
+      } else if(!(
+        y  >= that.ym ||
+        y  <= that.y
+      )) {
+        return 1;
+      } else if(!(
+        xm >= that.xm ||
+        xm <= that.x
+      )) {
+        return -2;
+      } else if(!(
+        ym  >= that.ym ||
+        ym  <= that.y
+      )) {
+        return -1;
+      };
+      return 0;
+    }
+    overlaps(that) {
+      if (
+        Math.min(this.x, this.xm) >= that.xm ||
+        Math.max(this.x, this.xm) <= that.x  ||
+        Math.min(this.y, this.ym) >= that.ym ||
+        Math.max(this.y, this.ym) <= that.y
+      ) return false;
+      const x = (that.y - this.y) * (this.dir.x / this.dir.y) + this.x;
+      const y = (that.x - this.x) * (this.dir.y / this.dir.x) + this.y;
+      const xm = (that.ym - this.y) * (this.dir.x / this.dir.y) + this.x;
+      const ym = (that.xm - this.x) * (this.dir.y / this.dir.x) + this.y;
+  
+      return !(
+        x >= that.xm ||
+        x <= that.x
+      ) || !(
+        y  >= that.ym ||
+        y  <= that.y
+      ) || !(
+        xm >= that.xm ||
+        xm <= that.x
+      ) || !(
+        ym  >= that.ym ||
+        ym  <= that.y
+      );
+    }
+  };
 
   self.jBox = class jBox {
-    constructor(srcPos, w, h, d, xOff = 0, yOff = 0, zOff = 0) {
-      this.srcPos = srcPos;
+    constructor(src, w, h, d, xOff = 0, yOff = 0, zOff = 0) {
+      this.src = src;
       this.xOff = xOff;
       this.yOff = yOff;
       this.zOff = zOff;
@@ -60,30 +140,30 @@
       this.d = d;
     }
 
-    get x() { return this.srcPos[0] + this.xOff; }
-    get y() { return this.srcPos[1] + this.yOff; }
-    get z() { return this.srcPos[2] + this.zOff; }
+    get x() { return this.src[0] + this.xOff; }
+    get y() { return this.src[1] + this.yOff; }
+    get z() { return this.src[2] + this.zOff; }
     get xm() { return this.x + this.w; }
     get ym() { return this.y + this.h; }
     get zm() { return this.z + this.d; }
 
-    intersect(that) {
+    overlap(that) {
       const x = check(this.x, this.xm, that.x, that.xm);
       const y = check(this.y, this.ym, that.y, that.ym);
       const z = check(this.z, this.zm, that.z, that.zm);
 
       switch(Math.min(x * x, y * y, z * z)) {
         case x * x:
-          return new Vec3f(x, 0, 0);
+          return new Vec3(x, 0, 0);
         case y * y:
-          return new Vec3f(0, y, 0);
+          return new Vec3(0, y, 0);
         case z * z:
-          return new Vec3f(0, 0, z);
+          return new Vec3(0, 0, z);
         default:
-          return new Vec3f();
+          return new Vec3();
       }
     }
-    intersects(that) {
+    overlaps(that) {
       return !(
         this.x  >= that.xm ||
         this.xm <= that.x  ||
@@ -95,11 +175,11 @@
     }
     contains(that) {
       return (
-        this.x  <= that.x ||
-        this.xm >= that.xm  ||
-        this.y  <= that.y ||
-        this.ym >= that.ym  ||
-        this.z  <= that.z ||
+        this.x  <= that.x  ||
+        this.xm >= that.xm ||
+        this.y  <= that.y  ||
+        this.ym >= that.ym ||
+        this.z  <= that.z  ||
         this.zm >= that.zm
       );
     }
@@ -117,31 +197,90 @@
     get ym() { return this.y + this.dir[1]; }
     get zm() { return this.z + this.dir[2]; }
 
-    intersect(that) {
-      const x = check(this.x, this.xm, that.x, that.xm);
-      const y = check(this.y, this.ym, that.y, that.ym);
-      const z = check(this.z, this.zm, that.z, that.zm);
-
-      switch(Math.min(x * x, y * y, z * z)) {
-        case x * x:
-          return new Vec3f(x, 0, 0);
-        case y * y:
-          return new Vec3f(0, y, 0);
-        case z * z:
-          return new Vec3f(0, 0, z);
-        default:
-          return new Vec3f();
-      }
+    overlap(that) {
+      if (
+        Math.min(this.x, this.xm) >= that.xm ||
+        Math.max(this.x, this.xm) <= that.x  ||
+        Math.min(this.y, this.ym) >= that.ym ||
+        Math.max(this.y, this.ym) <= that.y  ||
+        Math.min(this.z, this.zm) >= that.zm ||
+        Math.max(this.z, this.zm) <= that.z
+      ) return false;
+      const x = (that.y - this.y) * (this.dir.x / this.dir.y) + this.x;
+      const y = (that.x - this.x) * (this.dir.y / this.dir.x) + this.y;
+      const z = (that.x - this.x) * (this.dir.z / this.dir.x) + this.z;
+      const xm = (that.ym - this.y) * (this.dir.x / this.dir.y) + this.x;
+      const ym = (that.xm - this.x) * (this.dir.y / this.dir.x) + this.y;
+      const zm = (that.xm - this.x) * (this.dir.z / this.dir.x) + this.z;
+  
+      if(!(
+        x >= that.xm ||
+        x <= that.x
+      )) {
+        return new Vec3(-1,0,0);
+      } else if(!(
+        y  >= that.ym ||
+        y  <= that.y
+      )) {
+        return new Vec3(0,-1,0);
+      } else if(!(
+        z  >= that.zm ||
+        z  <= that.z
+      )) {
+        return new Vec3(0,0,-1);
+      } else if(!(
+        xm >= that.xm ||
+        xm <= that.x
+      )) {
+        return new Vec3(1,0,0);
+      } else if(!(
+        ym  >= that.ym ||
+        ym  <= that.y
+      )) {
+        return new Vec3(0,1,0);
+      } else if(!(
+        zm  >= that.zm ||
+        zm  <= that.z
+      )) {
+        return new Vec3(0,0,1);
+      };
+      return new Vec3();
     }
-    intersects(that) {
+    overlaps(that) {
+      if (
+        Math.min(this.x, this.xm) >= that.xm ||
+        Math.max(this.x, this.xm) <= that.x  ||
+        Math.min(this.y, this.ym) >= that.ym ||
+        Math.max(this.y, this.ym) <= that.y  ||
+        Math.min(this.z, this.zm) >= that.zm ||
+        Math.max(this.z, this.zm) <= that.z
+      ) return false;
+      const x = (that.y - this.y) * (this.dir.x / this.dir.y) + this.x;
+      const y = (that.x - this.x) * (this.dir.y / this.dir.x) + this.y;
+      const z = (that.x - this.x) * (this.dir.z / this.dir.x) + this.z;
+      const xm = (that.ym - this.y) * (this.dir.x / this.dir.y) + this.x;
+      const ym = (that.xm - this.x) * (this.dir.y / this.dir.x) + this.y;
+      const zm = (that.xm - this.x) * (this.dir.z / this.dir.x) + this.z;
+  
       return !(
-        this.x  >= that.xm ||
-        this.xm <= that.x  ||
-        this.y  >= that.ym ||
-        this.ym <= that.y  ||
-        this.z  >= that.zm ||
-        this.zm <= that.z
-      );
+          x >= that.xm ||
+          x <= that.x
+        ) || !(
+          y  >= that.ym ||
+          y  <= that.y
+        ) || !(
+          z  >= that.zm ||
+          z  <= that.z
+        ) || !(
+          xm >= that.xm ||
+          xm <= that.x
+        ) || !(
+          ym  >= that.ym ||
+          ym  <= that.y
+        ) || !(
+          zm  >= that.zm ||
+          zm  <= that.z
+        );
     }
   };
 }

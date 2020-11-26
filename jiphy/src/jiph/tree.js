@@ -15,7 +15,7 @@ if(self.Octree === undefined) {
 
     get(center,size) {
       let out = [];
-      if(this.#intersects(center,size)) {
+      if(this.#overlaps(center,size)) {
         if(this.#nodes.length) {
           out.push(...this.#nodes[0].get(center,size));
           out.push(...this.#nodes[1].get(center,size));
@@ -64,7 +64,7 @@ if(self.Octree === undefined) {
       this.#nodes[6] = new Octree([_x, y, z], size, this.#depth - 1);
       this.#nodes[7] = new Octree([ x, y, z], size, this.#depth - 1);
     }
-    #intersects(center, size) {
+    #overlaps(center, size) {
       return !(
         this.#center[0] - this.#size[0] >= center[0] + size[0] ||
         this.#center[0] + this.#size[0] <= center[0] - size[0] ||
@@ -101,7 +101,7 @@ if(self.Octree === undefined) {
   
     get(center, size) {
       let out = [];
-      if(this.#intersects(center, size)) {
+      if(this.#overlaps(center, size)) {
         out.push(...this.#values);
         if(this.#nodes.length) {
           out.push(...this.#nodes[0].get(center,size));
@@ -137,7 +137,7 @@ if(self.Octree === undefined) {
       this.#nodes[1] = new Quadtree([ x,_y], size, this.#depth - 1);
       this.#nodes[0] = new Quadtree([_x,_y], size, this.#depth - 1);
     }
-    #intersects(center, size) {
+    #overlaps(center, size) {
       return !(
         this.#center[0] - this.#size[0] >= center[0] + size[0] ||
         this.#center[0] + this.#size[0] <= center[0] - size[0] ||

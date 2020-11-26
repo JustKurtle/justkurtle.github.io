@@ -1,7 +1,7 @@
 const typeOf = v => v.constructor.name; 
 
-if(Math.Mat4f === undefined) {
-  self.Vec3f = class Vec3f extends Float32Array {
+if(Math.Mat4 === undefined) {
+  self.Vec3 = class Vec3 extends Float32Array {
     constructor(x = 0, y = 0, z = 0) {
       super([x, y, z]);
     }
@@ -14,13 +14,13 @@ if(Math.Mat4f === undefined) {
     set z(_v) { this[2] = _v; }
 
     get mag() { return Math.hypot(...this); }
-    get unit() { const m = Math.hypot(...this); return new Vec3f(this[0] / m, this[1] / m, this[2] / m); }
+    get unit() { const m = Math.hypot(...this); return new Vec3(this[0] / m, this[1] / m, this[2] / m); }
     get norm() { const m = Math.hypot(...this); this[0] /= m; this[1] /= m; this[2] /= m; return this; }
     dot(that) { return this[0] * that[0] + this[1] * that[1] + this[2] * that[2]; }
-    cross(that) { return new Vec3f(this[1] * that[2] - this[2] * that[1], this[2] * that[0] - this[0] * that[2], this[0] * that[1] - this[1] * that[0]); }
+    cross(that) { return new Vec3(this[1] * that[2] - this[2] * that[1], this[2] * that[0] - this[0] * that[2], this[0] * that[1] - this[1] * that[0]); }
     m(that, out = this) {
       switch(typeOf(that)) {
-        case "Mat4f":
+        case "Mat4":
           for(let i in this)
             out[i] =
               that[i%4] * this[0] +
@@ -140,7 +140,7 @@ if(Math.Mat4f === undefined) {
     }
   };
 
-  self.Mat4f = class Mat4f extends Float32Array {
+  self.Mat4 = class Mat4 extends Float32Array {
     constructor(data = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]) {
       super(data);
     }
@@ -205,7 +205,7 @@ if(Math.Mat4f === undefined) {
       return out;
     }
     i(out = this) {
-      let c = new Mat4f(this);
+      let c = new Mat4(this);
       let _00 = c[ 0] * c[ 5] - c[ 1] * c[ 4],
         _01 = c[ 0] * c[ 6] - c[ 2] * c[ 4],
         _02 = c[ 0] * c[ 7] - c[ 3] * c[ 4],
@@ -249,7 +249,7 @@ if(Math.Mat4f === undefined) {
       return out;
     }
 
-    lookAt(eye, target, up = new Vec3f(0,1,0), out = this) {
+    lookAt(eye, target, up = new Vec3(0,1,0), out = this) {
       const f = target.s(eye).unit;
       const r = up.cross(f).unit;
       const u = f.cross(r);
@@ -261,7 +261,7 @@ if(Math.Mat4f === undefined) {
       ]);
       return out;
     }
-    lookTo(eye, dir, up = new Vec3f(0,1,0), out = this) {
+    lookTo(eye, dir, up = new Vec3(0,1,0), out = this) {
       const f = dir.unit.m(-1);
       const r = up.cross(f).unit;
       const u = f.cross(r);

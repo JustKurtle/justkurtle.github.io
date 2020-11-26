@@ -29,11 +29,11 @@ self.jUI = class jUI {
   #bHide;
 
   hide() { if(this.#fHide) this.#bHide = !this.#bHide; }
-  move(x, y) { if(this.#fMove) this.rect.srcPos.x = x, this.rect.srcPos.y = y; }
+  move(x, y) { if(this.#fMove) this.rect.src.x = x, this.rect.src.y = y; }
   resize(w, h) { if(this.#fResize) this.rect.w = w, this.rect.h = h; }
 
-  get pos() { return new Vec3f(this.rect.srcPos.x, this.rect.srcPos.y); }
-  get size() { return new Vec3f(this.rect.w, this.rect.h); }
+  get pos() { return new Vec3(this.rect.src.x, this.rect.src.y); }
+  get size() { return new Vec3(this.rect.w, this.rect.h); }
 
   update(dt = 1) {
     if(this.#bHide) return;
@@ -42,7 +42,7 @@ self.jUI = class jUI {
 
   draw(gl) {
     if(this.#bHide) return;
-    this.sMat.modelViewMatrix.t(this.rect.srcPos);
+    this.sMat.modelViewMatrix.t(this.rect.src);
     this.sMat.use(gl);
   }
 };

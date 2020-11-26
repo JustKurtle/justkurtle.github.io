@@ -7,7 +7,7 @@ import "./game/player.js"
 
 (function() {
   const canvas = document.querySelector("#canvas");
-  const gl = canvas.getContext("webgl2");
+  self.gl = canvas.getContext("webgl2");
   if (!gl) return;
   (window.onresize = () => {
     canvas.width = innerWidth;
@@ -17,7 +17,7 @@ import "./game/player.js"
   
   canvas.onclick = canvas.requestPointerLock;
 
-  const shader = jShader(gl, [`
+  self.shader = jShader(gl, [`
     attribute vec4 aVertexPosition;
     attribute vec2 aTextureCoord;
 
@@ -35,27 +35,25 @@ import "./game/player.js"
     varying highp vec2 vTextureCoord;
 
     uniform sampler2D uSampler;
+    uniform highp float uGlow;
 
     void main(void) {
-      gl_FragColor = texture2D(uSampler, vTextureCoord);
+      gl_FragColor = texture2D(uSampler, vTextureCoord) + uGlow;
     }
   `]);
   let texture = jLoadTexture(gl, './assets/UI.png');
   let entities = [];
-  let player = new Player(new Vec3f(8,64,8));
+  let player = new Player(new Vec3(8,64,8));
+  let chunk = new Chunk();
 
   let camera = new jCamera();
-  camera.lookAt = new Mat4f();
-  camera.projection = new Mat4f().perspective(0.1, 1000, 90, innerWidth / innerHeight);
-
-  self.boxTree = new Octree([32,16,32], [32,16,32], 16);
+  camera.lookAt = new Mat4();
   {
-    let i = 6096;
+    let i = 4098;
     while(i--) {
-      let [x,y,z] = [i % 64, (i / 4196 | 0) * 3, (i / 64 | 0) % 64];
+      let [x,y,z] = [i % 16, i / 256 | 0, (i / 16 | 0) % 16];
       let b = new Block(gl, x, y, z, shader);
-      entities.push(b);
-      boxTree.set([x, y, z], [0,0,0], b.box);
+      chunk.set([x,y,z], b);
     }
   }
 
@@ -66,6 +64,16 @@ import "./game/player.js"
     requestAnimationFrame(main);
     const dt = (now - then) * 0.001;
     then = now;
+    let fov = 90;
+    
+    for(let [k, v] of keys) {
+      switch(k) {
+        case "KeyC":
+          fov = 20;
+          break;
+      }
+    }
+    camera.projection = new Mat4().perspective(0.1, 1000, fov, innerWidth / innerHeight);
 
     scene.clear(gl);
     
@@ -75,11 +83,13 @@ import "./game/player.js"
       uProjectionMatrix: camera.projection
     });
 
-    player.update(dt, { boxTree });
+    player.update(dt, { chunk });
     for(let e of entities) e.update(dt);
+    for(let [k, v] of chunk.data) v.update(dt);
 
     player.draw(gl, { camera });
     for(let e of entities) e.draw(gl);
+    for(let [k, v] of chunk.data) v.draw(gl);
   }
   requestAnimationFrame(main);
 })();
