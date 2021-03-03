@@ -2,22 +2,21 @@ import "../jiph/core.js"
 import "../jiph/math.js"
 
 self.keys = new Map();
-self.onkeydown = e => {
-  // e.preventDefault();
-  keys.set(e.code, e);
-};
+self.onkeydown = e => keys.set(e.code, e); 
 self.onkeyup = e => keys.delete(e.code);
 
 self.M_CLICK = false;
 
 self.Player = class Player {
   constructor(pos) {
-    this.ray = new jRay(pos, new Vec3(0,0,1));
+    this.ray = new jRay(pos, new Vec3(0,0,7));
     this.box = new jBox(pos,
       0.4, 1.8, 0.4,
      -0.2,-1.6,-0.2);
     this.pos = pos;
     this.vel = new Vec3();
+
+    this.grounded = false;
 
     let cRad = [Math.PI, 0];
     self.onmousemove = e => {
@@ -37,23 +36,11 @@ self.Player = class Player {
       q1.ry(cRad[0], q1).i(q2);
       q1.rx(cRad[1], q1).i(q2);
 
-      this.ray.dir = new Vec3(...q1.m(f).m(q2)).m(3);
+      this.ray.dir = new Vec3(...q1.m(f).m(q2)).m(7);
     };
     self.onmousedown = e => M_CLICK = true;
     self.onmouseup = e => M_CLICK = false;
-
-    let pt = { clientX: 0, clientY: 0 };
-    self.ontouchstart = e => pt = e.touches[0];
-    self.ontouchmove = e => {
-      console.log(e);
-      e.movementX = e.touches[0].clientX - pt.clientX;
-      e.movementY = e.touches[0].clientY - pt.clientY;
-      pt = e.touches[0];
-      self.onmousemove(e);
-    };
   }
-
-  #grounded = false;
 
   update(dt = 1, { chunk }) {
     const f = new Vec3(this.ray.dir.x, 0, this.ray.dir.z).unit;
@@ -63,7 +50,7 @@ self.Player = class Player {
     let jump = 0.33;
     let gravity = 0;
     let friction = new Vec3(0.82, 0.98, 0.82);
-    if(!this.#grounded) {
+    if(!this.grounded) {
       speed = 0.25 * dt;
       jump = 0;
       gravity = dt;
@@ -99,23 +86,29 @@ self.Player = class Player {
     this.vel.y -= gravity;
     this.pos.a(this.vel.m(friction));
 
-    this.#grounded = false;
-    let boxes = chunk.tree.get(this.pos, [4,4,4]);
+    this.grounded = false;
+    let boxes = chunk.tree.get(this.pos, [7,7,7]);
+    let dir = new Vec3(...this.ray.dir);
+    let boxhit = false;
     for(let b of boxes) {
       if(this.box.overlaps(b)) {
         let o = this.box.overlap(b);
-        if(o.y > 0) this.#grounded = true;
+        if(o.y > 0) this.grounded = true;
         this.vel.m([!o.x,!o.y,!o.z]);
         this.pos.a(o);
       }
-      if(M_CLICK && this.ray.overlaps(b)) {
-
-        let o = this.ray.overlap(b);
-        let p = new Vec3(b.src[0] - o.x,b.src[1] - o.y,b.src[2] - o.z);
-        chunk.set(p, new Block(gl, ...p, shader));
-        chunk.get(p).gMaterial.uGlow = 1;
-        M_CLICK = false;
+      if(M_CLICK && this.ray.hits(b)) {
+        this.ray.dir = this.ray.hit(b);
+        boxhit = true;
       }
+    }
+    if(boxhit) {
+      this.ray.dir.a(this.pos).a([0.5,0.5,0.5]);
+      this.ray.dir[0] &= 15, this.ray.dir[1] &= 255, this.ray.dir[2] &= 15;
+      chunk.set(this.ray.dir, new Block(gl, this.ray.dir[0], this.ray.dir[1], this.ray.dir[2], shader));
+      chunk.get(this.ray.dir).rMat.uGlow = 0.2;
+      M_CLICK = false;
+      this.ray.dir = dir;
     }
   }
 

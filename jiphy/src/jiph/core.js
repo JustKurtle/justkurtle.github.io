@@ -67,39 +67,12 @@
     get ym() { return this.y + this.dir[1]; }
 
     overlap(that) {
-      if (
-        Math.min(this.x, this.xm) >= that.xm ||
-        Math.max(this.x, this.xm) <= that.x  ||
-        Math.min(this.y, this.ym) >= that.ym ||
-        Math.max(this.y, this.ym) <= that.y
-      ) return false;
-      const x = (that.y - this.y) * (this.dir.x / this.dir.y) + this.x;
-      const y = (that.x - this.x) * (this.dir.y / this.dir.x) + this.y;
-      const xm = (that.ym - this.y) * (this.dir.x / this.dir.y) + this.x;
-      const ym = (that.xm - this.x) * (this.dir.y / this.dir.x) + this.y;
-  
-      if(!(
-        x >= that.xm ||
-        x <= that.x
-      )) {
-        return 2;
-      } else if(!(
-        y  >= that.ym ||
-        y  <= that.y
-      )) {
-        return 1;
-      } else if(!(
-        xm >= that.xm ||
-        xm <= that.x
-      )) {
-        return -2;
-      } else if(!(
-        ym  >= that.ym ||
-        ym  <= that.y
-      )) {
-        return -1;
-      };
-      return 0;
+      if(this.overlaps(that)) {
+        const mx = Math.min((that.x - this.x) / this.dir.x, (that.xm - this.x) / this.dir.x);
+        const my = Math.min((that.y - this.y) / this.dir.y, (that.ym - this.y) / this.dir.y);
+        return this.dir.m(Math.max(mx, my), new Vec3()).a(this.src);
+      }
+      return this.dir.a(this.src, new Vec3());
     }
     overlaps(that) {
       if (
@@ -108,24 +81,15 @@
         Math.min(this.y, this.ym) >= that.ym ||
         Math.max(this.y, this.ym) <= that.y
       ) return false;
-      const x = (that.y - this.y) * (this.dir.x / this.dir.y) + this.x;
-      const y = (that.x - this.x) * (this.dir.y / this.dir.x) + this.y;
-      const xm = (that.ym - this.y) * (this.dir.x / this.dir.y) + this.x;
-      const ym = (that.xm - this.x) * (this.dir.y / this.dir.x) + this.y;
-  
-      return !(
-        x >= that.xm ||
-        x <= that.x
-      ) || !(
-        y  >= that.ym ||
-        y  <= that.y
-      ) || !(
-        xm >= that.xm ||
-        xm <= that.x
-      ) || !(
-        ym  >= that.ym ||
-        ym  <= that.y
-      );
+      const l = new Vec3(this.dir.unit.y,-this.dir.unit.x);
+      const c = [
+        l.dot([that.x  - this.x, that.y  - this.y,0]),
+        l.dot([that.x  - this.x, that.ym - this.y,0]),
+        l.dot([that.xm - this.x, that.y  - this.y,0]),
+        l.dot([that.xm - this.x, that.ym - this.y,0])
+      ];
+      const min = Math.min(...c), max = Math.max(...c);
+      return !(0 >= max || 0 <= min);
     }
   };
 
@@ -193,60 +157,20 @@
     get x() { return this.src[0]; }
     get y() { return this.src[1]; }
     get z() { return this.src[2]; }
-    get xm() { return this.x + this.dir[0]; }
-    get ym() { return this.y + this.dir[1]; }
-    get zm() { return this.z + this.dir[2]; }
+    get xm() { return this.src[0] + this.dir[0]; }
+    get ym() { return this.src[1] + this.dir[1]; }
+    get zm() { return this.src[2] + this.dir[2]; }
 
-    overlap(that) {
-      if (
-        Math.min(this.x, this.xm) >= that.xm ||
-        Math.max(this.x, this.xm) <= that.x  ||
-        Math.min(this.y, this.ym) >= that.ym ||
-        Math.max(this.y, this.ym) <= that.y  ||
-        Math.min(this.z, this.zm) >= that.zm ||
-        Math.max(this.z, this.zm) <= that.z
-      ) return false;
-      const x = (that.y - this.y) * (this.dir.x / this.dir.y) + this.x;
-      const y = (that.x - this.x) * (this.dir.y / this.dir.x) + this.y;
-      const z = (that.x - this.x) * (this.dir.z / this.dir.x) + this.z;
-      const xm = (that.ym - this.y) * (this.dir.x / this.dir.y) + this.x;
-      const ym = (that.xm - this.x) * (this.dir.y / this.dir.x) + this.y;
-      const zm = (that.xm - this.x) * (this.dir.z / this.dir.x) + this.z;
-  
-      if(!(
-        x >= that.xm ||
-        x <= that.x
-      )) {
-        return new Vec3(-1,0,0);
-      } else if(!(
-        y  >= that.ym ||
-        y  <= that.y
-      )) {
-        return new Vec3(0,-1,0);
-      } else if(!(
-        z  >= that.zm ||
-        z  <= that.z
-      )) {
-        return new Vec3(0,0,-1);
-      } else if(!(
-        xm >= that.xm ||
-        xm <= that.x
-      )) {
-        return new Vec3(1,0,0);
-      } else if(!(
-        ym  >= that.ym ||
-        ym  <= that.y
-      )) {
-        return new Vec3(0,1,0);
-      } else if(!(
-        zm  >= that.zm ||
-        zm  <= that.z
-      )) {
-        return new Vec3(0,0,1);
-      };
+    hit(that) {
+      if(this.hits(that)) {
+        const mx = Math.min((that.x - this.x) / this.dir.x, (that.xm - this.x) / this.dir.x);
+        const my = Math.min((that.y - this.y) / this.dir.y, (that.ym - this.y) / this.dir.y);
+        const mz = Math.min((that.z - this.z) / this.dir.z, (that.zm - this.z) / this.dir.z);
+        return this.dir.m(Math.max(mx, my, mz), new Vec3());
+      }
       return new Vec3();
     }
-    overlaps(that) {
+    hits(that) {
       if (
         Math.min(this.x, this.xm) >= that.xm ||
         Math.max(this.x, this.xm) <= that.x  ||
@@ -255,32 +179,19 @@
         Math.min(this.z, this.zm) >= that.zm ||
         Math.max(this.z, this.zm) <= that.z
       ) return false;
-      const x = (that.y - this.y) * (this.dir.x / this.dir.y) + this.x;
-      const y = (that.x - this.x) * (this.dir.y / this.dir.x) + this.y;
-      const z = (that.x - this.x) * (this.dir.z / this.dir.x) + this.z;
-      const xm = (that.ym - this.y) * (this.dir.x / this.dir.y) + this.x;
-      const ym = (that.xm - this.x) * (this.dir.y / this.dir.x) + this.y;
-      const zm = (that.xm - this.x) * (this.dir.z / this.dir.x) + this.z;
-  
-      return !(
-          x >= that.xm ||
-          x <= that.x
-        ) || !(
-          y  >= that.ym ||
-          y  <= that.y
-        ) || !(
-          z  >= that.zm ||
-          z  <= that.z
-        ) || !(
-          xm >= that.xm ||
-          xm <= that.x
-        ) || !(
-          ym  >= that.ym ||
-          ym  <= that.y
-        ) || !(
-          zm  >= that.zm ||
-          zm  <= that.z
-        );
+      const l = this.dir.cross(that.src.s(this.src, []));
+      const c = [
+        l.dot([that.x  - this.x, that.y  - this.y, that.z  - this.z]),
+        l.dot([that.x  - this.x, that.ym - this.y, that.z  - this.z]),
+        l.dot([that.xm - this.x, that.y  - this.y, that.z  - this.z]),
+        l.dot([that.xm - this.x, that.ym - this.y, that.z  - this.z]),
+        l.dot([that.x  - this.x, that.y  - this.y, that.zm - this.z]),
+        l.dot([that.x  - this.x, that.ym - this.y, that.zm - this.z]),
+        l.dot([that.xm - this.x, that.y  - this.y, that.zm - this.z]),
+        l.dot([that.xm - this.x, that.ym - this.y, that.zm - this.z])
+      ];
+      const min = Math.min(...c), max = Math.max(...c);
+      return !(0 >= max || 0 <= min);
     }
   };
 }

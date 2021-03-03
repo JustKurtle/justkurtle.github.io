@@ -36,9 +36,10 @@ import "./game/player.js"
 
     uniform sampler2D uSampler;
     uniform highp float uGlow;
+    uniform highp vec3 uLight;
 
     void main(void) {
-      gl_FragColor = texture2D(uSampler, vTextureCoord) + uGlow;
+      gl_FragColor = texture2D(uSampler, vTextureCoord) * uGlow;
     }
   `]);
   let texture = jLoadTexture(gl, './assets/UI.png');
@@ -49,7 +50,7 @@ import "./game/player.js"
   let camera = new jCamera();
   camera.lookAt = new Mat4();
   {
-    let i = 4098;
+    let i = 256 * 64;
     while(i--) {
       let [x,y,z] = [i % 16, i / 256 | 0, (i / 16 | 0) % 16];
       let b = new Block(gl, x, y, z, shader);
@@ -85,7 +86,6 @@ import "./game/player.js"
 
     player.update(dt, { chunk });
     for(let e of entities) e.update(dt);
-    for(let [k, v] of chunk.data) v.update(dt);
 
     player.draw(gl, { camera });
     for(let e of entities) e.draw(gl);

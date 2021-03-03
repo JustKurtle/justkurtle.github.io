@@ -1,21 +1,24 @@
 ::-webkit-scrollbar {
   width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #242933; 
+  background: transparent; 
 }
+::-webkit-scrollbar-corner {
+  background: transparent; 
+}
+
 ::-webkit-scrollbar-thumb {
   background: #3B4252;
+  border-radius: 1rem;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #434C5E; 
 }
-::-webkit-scrollbar-corner {
-  background: #242933; 
-}
 
 html {
-  min-width: 100%;
+  min-width: 100vw;
   min-height: 100vh;
   background-position: top center;
   background-color: #2E3440;
@@ -25,8 +28,9 @@ body {
   padding: 0%;
   margin: 0%;
 
+  font-family: sans-serif;
   font-family: Rubik;
-  font-size: 1rem;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
 
@@ -35,47 +39,53 @@ body {
   scroll-behavior: smooth;
 }
 
-a {
-  text-decoration: none;
-  color: #5E81AC;
-}
-
-#tab-bar {
+#menubar {
   user-select: none; /* supported by Chrome and Opera */
   -webkit-user-select: none; /* Safari */
   -khtml-user-select: none; /* Konqueror HTML */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
 
+  top: 0px;
   width: 100%;
   height: auto;
   display: flex;
   position: fixed;
-  top: 0px;
   align-items: center;
   justify-content: flex-end;
   
   background-color: #242933;
 }
 
-.tab {
+.project {
   width: auto;
   height: auto;
   text-align: center;
+  text-decoration: none;
   padding: 4px 10px;
-
   color: #D8DEE9;
-  background-color: #242933;
+
+  background-color: transparent;
   border-bottom: solid #5E81AC;
 }
+  
+.project:hover {
+  background-color: #2b313d;
+  border-bottom: solid #81A1C1;
+}
 
-#main-body {
-  margin: 4rem auto 0px auto;
-  padding: 2rem 3rem;
-  border-radius: 10px 10px 0px 0px;
-  width: 60%;  
-  height: 90vh;
-  background-color: #3B4252;
+.title {
+  font-size: 20px;
+  color: transparent;
+  margin: 0 auto 0 10px;
 
-  text-align: center;
+  justify-self: flex-start;
+
+  background: -webkit-linear-gradient(to right, #861cff, #e90000);
+  background: -moz-linear-gradient(to right, #861cff, #e90000);
+  background: linear-gradient(to right, #861cff, #e90000);
+
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

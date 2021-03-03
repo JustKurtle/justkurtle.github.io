@@ -57,7 +57,7 @@ import "./trees.js"
     for(let v of points) {
       ctx.fillStyle = "#00FF98";
       ctx.fillRect(v.x,v.y,v.w,v.h);
-    }   
+    }
   }
   requestAnimationFrame(main);
 })();

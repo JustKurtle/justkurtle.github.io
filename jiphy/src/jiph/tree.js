@@ -48,6 +48,20 @@ if(self.Octree === undefined) {
       }
       return false
     }
+    delete(center,size) {
+      if(this.#overlaps(center,size)) {
+        if(this.#nodes.length) {
+          out.push(...this.#nodes[0].delete(center,size));
+          out.push(...this.#nodes[1].delete(center,size));
+          out.push(...this.#nodes[2].delete(center,size));
+          out.push(...this.#nodes[3].delete(center,size));
+          out.push(...this.#nodes[4].delete(center,size));
+          out.push(...this.#nodes[5].delete(center,size));
+          out.push(...this.#nodes[6].delete(center,size));
+          out.push(...this.#nodes[7].delete(center,size));
+        }
+      }
+    }
 
     // Private utils
     #split() {
