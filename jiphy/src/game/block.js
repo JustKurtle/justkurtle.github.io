@@ -1,79 +1,113 @@
 import "../jiph/core.js"
 import "../jiph/math.js"
 
-self.Block = class Block {
-  constructor(gl, x, y, z, shader) {
+self.cCode = n => (n[0] & 0xf) + ((n[2] & 0xf) << 4) + ((n[1] & 0xff) << 8);
+self.cDecode = n => [n & 0xf, n >> 8 & 0xff, n >> 4 & 0xf];
+self.Chunk = class Chunk {
+  constructor(shader) {
+    this.data = new Uint16Array(new Array(65535)); // terrain data
+    this.uTime; // the time unloaded
+
     this.shader = shader;
+    this.indexLength = 0;
+    this.rMat = {};
+  }
+
+  set(pos, blockIndex) { return this.data[cCode(pos)] = this.data[cCode(pos)] ? this.data[cCode(pos)] : blockIndex; }
+  get(pos) { return this.data[cCode(pos)]; }
+  has(pos) { return !!this.data[cCode(pos)]; }
+  delete(pos) { delete(this.data[cCode(pos)]); }
+
+  update() {
+    let vPos = [], tCoord = [], index = [];
+    this.data.forEach((e, i) => {
+      if(!e) return;
+      let pos = cDecode(i);
+      if(!this.data[+i + 256]) {
+        vPos = vPos.concat([
+          -0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
+           0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
+           0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
+          -0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2]]); // +y
+        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        let l = Math.floor(index.length / 6 * 4);
+        index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
+      }
+      if(!this.data[+i - 256]) {
+        vPos = vPos.concat([
+          -0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2], 
+           0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2], 
+           0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2], 
+          -0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2]]); // -y
+        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        let l = Math.floor(index.length / 6 * 4);
+        index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
+      }
+      if(!this.data[+i + 1]) {
+        vPos = vPos.concat([
+           0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2], 
+           0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
+           0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
+           0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2]]); // +z
+        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        let l = Math.floor(index.length / 6 * 4);
+        index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
+      }
+      if(!this.data[+i - 1]) {
+        vPos = vPos.concat([
+          -0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2], 
+          -0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
+          -0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
+          -0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2]]); // -z
+        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        let l = Math.floor(index.length / 6 * 4);
+        index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
+      }
+      if(!this.data[+i + 16]) {
+        vPos = vPos.concat([
+          -0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2], 
+           0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2], 
+           0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
+          -0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2]]); // +x
+        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        let l = Math.floor(index.length / 6 * 4);
+        index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
+      }
+      if(!this.data[+i - 16]) {
+        vPos = vPos.concat([
+          -0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
+           0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
+           0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2], 
+          -0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2]]); // -x
+        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        let l = Math.floor(index.length / 6 * 4);
+        index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
+      }
+    });
+    this.indexLength = index.length;
     this.rMat = {
       ...jBuffers(gl, {
         aVertexPosition: { 
-          array: [
-            0.5,-0.5,-0.5,  0.5, 0.5,-0.5,  0.5, 0.5, 0.5,  0.5,-0.5, 0.5, // +x
-           -0.5,-0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5,-0.5, -0.5,-0.5,-0.5, // -x
-           -0.5,-0.5,-0.5,  0.5,-0.5,-0.5,  0.5,-0.5, 0.5, -0.5,-0.5, 0.5, // +y
-           -0.5, 0.5, 0.5,  0.5, 0.5, 0.5,  0.5, 0.5,-0.5, -0.5, 0.5,-0.5, // -y
-           -0.5,-0.5, 0.5,  0.5,-0.5, 0.5,  0.5, 0.5, 0.5, -0.5, 0.5, 0.5, // +z
-           -0.5, 0.5,-0.5,  0.5, 0.5,-0.5,  0.5,-0.5,-0.5, -0.5,-0.5,-0.5, // -z
-          ], 
+          array: vPos, 
           size: 3
         },
         aTextureCoord: { 
-          array: [
-            0,0, 1,0, 1,1, 0,1, // +x
-            0,0, 1,0, 1,1, 0,1, // -x
-            0,0, 1,0, 1,1, 0,1, // +y
-            0,0, 1,0, 1,1, 0,1, // -y
-            0,0, 1,0, 1,1, 0,1, // +z
-            0,0, 1,0, 1,1, 0,1, // -z
-          ],
+          array: tCoord,
           size: 2
         },
         index: { 
-          array: [
-             0, 1, 2,  0, 2, 3,
-             4, 5, 6,  4, 6, 7,
-             8, 9,10,  8,10,11,
-            12,13,14, 12,14,15,
-            16,17,18, 16,18,19,
-            20,21,22, 20,22,23,
-          ], 
+          array: index, 
           size: 3
         },
       }),
-      uModelViewMatrix: new Mat4().t([x,y,z]),
+      uModelViewMatrix: new Mat4().t([0,0,0]),
       uGlow: 1,
     };
   }
-
+  
   draw(gl) {
     this.shader.set(this.rMat);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.rMat.index.buffer);
-    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-  }
-};
-
-self.Chunk = class Chunk {
-  constructor() {
-    this.data = new Map(); // terrain data
-    this.uTime; // the time unloaded
-
-    this.tree = new Octree([8,128,8], [8,128,8], 16);
-  }
-
-  set(pos, blockIndex) {
-    pos[0] &= 0xf;
-    pos[1] &= 0xff;
-    pos[2] &= 0xf;
-    let key = pos[0] + (pos[1] << 4) + (pos[2] << 12);
-    if(this.data.has(key)) return;
-    this.tree.set(pos, [0,0,0], new jBox(new Vec3(...pos), 1, 1, 1,-0.5,-0.5,-0.5));
-    return this.data.set(key, blockIndex);
-  }
-  get(pos) { return this.data.get((pos[0] & 0xf) + ((pos[1] & 0xff) << 4) + ((pos[2] & 0xf) << 12)); }
-  has(pos) { return this.data.has((pos[0] & 0xf) + ((pos[1] & 0xff) << 4) + ((pos[2] & 0xf) << 12)); }
-  delete(pos) { return this.data.delete((pos[0] & 0xf) + ((pos[1] & 0xff) << 4) + ((pos[2] & 0xf) << 12)); }
-  
-  draw(gl) {
-    
+    gl.drawElements(gl.TRIANGLES, this.indexLength, gl.UNSIGNED_SHORT, 0);
   }
 };

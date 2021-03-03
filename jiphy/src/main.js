@@ -42,21 +42,21 @@ import "./game/player.js"
       gl_FragColor = texture2D(uSampler, vTextureCoord) * uGlow;
     }
   `]);
-  let texture = jLoadTexture(gl, './assets/UI.png');
-  let entities = [];
-  let player = new Player(new Vec3(8,64,8));
-  let chunk = new Chunk();
+  let texture = jTexture(gl, './assets/UI.png');
+  let entities = [new Player(new Vec3(8,64,8))];
+  let chunks = [new Chunk(self.shader)];
 
   let camera = new jCamera();
   camera.lookAt = new Mat4();
   {
-    let i = 256 * 64;
+    let i = 256 * 63;
+    console.log(i);
     while(i--) {
-      let [x,y,z] = [i % 16, i / 256 | 0, (i / 16 | 0) % 16];
-      let b = new Block(gl, x, y, z, shader);
-      chunk.set([x,y,z], b);
+      chunks[0].set([i % 16, i / 256 | 0, (i / 16 | 0) % 16], 1);
     }
+    chunks[0].update();
   }
+  console.log(chunks[0].data);
 
   let scene = new jScene(gl);
 
@@ -84,12 +84,10 @@ import "./game/player.js"
       uProjectionMatrix: camera.projection
     });
 
-    player.update(dt, { chunk });
-    for(let e of entities) e.update(dt);
+    for(let e of entities) e.update(dt, { chunks });
 
-    player.draw(gl, { camera });
-    for(let e of entities) e.draw(gl);
-    for(let [k, v] of chunk.data) v.draw(gl);
+    for(let e of entities) e.draw(gl, { camera });
+    for(let chunk of chunks) chunk.draw(gl);
   }
   requestAnimationFrame(main);
 })();

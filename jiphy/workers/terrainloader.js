@@ -5,7 +5,7 @@ addEventListener('message', message => {
 
   let i = w * h;
   while(i--) {
-    terrainData[i] = 1;
+    terrainData[i] = 0;
   }
   
   postMessage(terrainData);

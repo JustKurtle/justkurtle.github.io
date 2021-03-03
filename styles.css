@@ -20,8 +20,6 @@
 html {
   min-width: 100vw;
   min-height: 100vh;
-  background-position: top center;
-  background-color: #2E3440;
 }
 
 body {
@@ -35,7 +33,7 @@ body {
   line-height: 1.5;
 
   color: #D8DEE9;
-  background-color: #2E3440;
+  background-color: #2b103d;
   scroll-behavior: smooth;
 }
 
@@ -54,7 +52,7 @@ body {
   align-items: center;
   justify-content: flex-end;
   
-  background-color: #242933;
+  background-color: #200C2E;
 }
 
 .project {
@@ -65,21 +63,19 @@ body {
   padding: 4px 10px;
   color: #D8DEE9;
 
-  background-color: transparent;
-  border-bottom: solid #5E81AC;
+  background-color: transparent; 
+  border-bottom: solid #4c1888;
 }
   
 .project:hover {
-  background-color: #2b313d;
-  border-bottom: solid #81A1C1;
+  background-color: #2d1141;
+  border-bottom: solid #5b2697;
 }
 
 .title {
   font-size: 20px;
   color: transparent;
-  margin: 0 auto 0 10px;
-
-  justify-self: flex-start;
+  margin: 0 auto 0 1rem;
 
   background: -webkit-linear-gradient(to right, #861cff, #e90000);
   background: -moz-linear-gradient(to right, #861cff, #e90000);

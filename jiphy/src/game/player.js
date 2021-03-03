@@ -19,12 +19,11 @@ self.Player = class Player {
     this.grounded = false;
 
     let cRad = [Math.PI, 0];
-    self.onmousemove = e => {
-      let amp = 0.002;
-      let angChange = [e.movementX * amp, e.movementY * amp];
+    addEventListener("mousemove", e => {
+      let dAng = [e.movementX * 0.002, e.movementY * 0.002];
 
-      cRad[0] -= angChange[0];
-      if(Math.abs(cRad[1] + angChange[1]) < Math.PI / 2) cRad[1] -= -angChange[1];
+      cRad[0] -= dAng[0];
+      if(Math.abs(cRad[1] + dAng[1]) < Math.PI / 2) cRad[1] -= -dAng[1];
       cRad[1] %= Math.PI * 2;
 
       let f = new Quat(0,0,1,0);
@@ -37,12 +36,12 @@ self.Player = class Player {
       q1.rx(cRad[1], q1).i(q2);
 
       this.ray.dir = new Vec3(...q1.m(f).m(q2)).m(7);
-    };
-    self.onmousedown = e => M_CLICK = true;
-    self.onmouseup = e => M_CLICK = false;
+    });
+    addEventListener("mousedown", e => M_CLICK = true);
+    addEventListener("mouseup", e => M_CLICK = false);
   }
 
-  update(dt = 1, { chunk }) {
+  update(dt = 1, { chunks }) {
     const f = new Vec3(this.ray.dir.x, 0, this.ray.dir.z).unit;
     const r = new Vec3(this.ray.dir.z, 0,-this.ray.dir.x).unit;
 
@@ -58,57 +57,63 @@ self.Player = class Player {
     }
     
     {
-      let movement = new Vec3(0,0,0);
+      let move = new Vec3(0,0,0);
       for(let [k, v] of keys) {
         switch(k) {
           case "KeyW":
-            movement.a(f);
+            move.a(f);
             break;
           case "KeyS":
-            movement.s(f);
+            move.s(f);
             break;
           case "KeyA":
-            movement.a(r);
+            move.a(r);
             break;
           case "KeyD":
-            movement.s(r);
+            move.s(r);
             break;
           case "Space":
             this.vel.y += jump;
+            break;
+          case "ShiftLeft":
+            this.vel.y -= jump;
             break;
           case "KeyP":
             break;
         }
       }
-      if(movement.dot(movement)) this.vel.a(movement.unit.m(speed));
+      if(move.dot(move)) this.vel.a(move.unit.m(speed));
     }
 
     this.vel.y -= gravity;
     this.pos.a(this.vel.m(friction));
 
     this.grounded = false;
-    let boxes = chunk.tree.get(this.pos, [7,7,7]);
-    let dir = new Vec3(...this.ray.dir);
-    let boxhit = false;
-    for(let b of boxes) {
-      if(this.box.overlaps(b)) {
-        let o = this.box.overlap(b);
-        if(o.y > 0) this.grounded = true;
-        this.vel.m([!o.x,!o.y,!o.z]);
-        this.pos.a(o);
+    for(let chunk of chunks) {
+      let box = new jBox(new Vec3(),1,1,1,-0.5,-0.5,-0.5);
+      let dir = new Vec3(...this.ray.dir);
+      let boxhit = false;
+      for(let b = cCode(this.pos.s(4, []));b < cCode(this.pos.a(4, []));b++) {
+        if(chunk.get(cDecode(b)) != 0) box.src = new Vec3(...cDecode(b));
+        if(this.box.overlaps(box)) {
+          let o = this.box.overlap(box);
+          if(o.y > 0) this.grounded = true;
+          this.vel.m([!o.x,!o.y,!o.z]);
+          this.pos.a(o);
+        }
+        if(M_CLICK && this.ray.hits(box)) {
+          this.ray.dir = this.ray.hit(box);
+          boxhit = true;
+        }
       }
-      if(M_CLICK && this.ray.hits(b)) {
-        this.ray.dir = this.ray.hit(b);
-        boxhit = true;
+      if(boxhit) {
+        this.ray.dir.a(this.pos).a([0.5,0.5,0.5]);
+        this.ray.dir[0] &= 15, this.ray.dir[1] &= 255, this.ray.dir[2] &= 15;
+        chunk.set(this.ray.dir, 1);
+        chunk.update();
+        M_CLICK = false;
+        this.ray.dir = dir;
       }
-    }
-    if(boxhit) {
-      this.ray.dir.a(this.pos).a([0.5,0.5,0.5]);
-      this.ray.dir[0] &= 15, this.ray.dir[1] &= 255, this.ray.dir[2] &= 15;
-      chunk.set(this.ray.dir, new Block(gl, this.ray.dir[0], this.ray.dir[1], this.ray.dir[2], shader));
-      chunk.get(this.ray.dir).rMat.uGlow = 0.2;
-      M_CLICK = false;
-      this.ray.dir = dir;
     }
   }
 

@@ -198,7 +198,7 @@
 
 // gl things
 {
-  self.jLoadTexture = function(gl, path) {
+  self.jTexture = function(gl, path) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -332,7 +332,7 @@
       }
     }
   };
-  self.jBuffers = (gl, arrays) => {
+  self.jBuffers = function(gl, arrays) {
     let out = {};
     for(let i in arrays) { 
       out[i] = {...arrays[i]};
