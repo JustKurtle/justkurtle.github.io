@@ -161,6 +161,9 @@
     get ym() { return this.src[1] + this.dir[1]; }
     get zm() { return this.src[2] + this.dir[2]; }
 
+    copy() {
+      return new jRay(new Vec3(...this.src), new Vec3(...this.dir));
+    }
     hit(that) {
       if(this.hits(that)) {
         const mx = Math.min((that.x - this.x) / this.dir.x, (that.xm - this.x) / this.dir.x);

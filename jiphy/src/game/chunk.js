@@ -13,10 +13,9 @@ self.Chunk = class Chunk {
     this.rMat = {};
   }
 
-  set(pos, blockIndex) { return this.data[cCode(pos)] = this.data[cCode(pos)] ? this.data[cCode(pos)] : blockIndex; }
+  set(pos, blockIndex) { return this.data[cCode(pos)] = blockIndex; }
   get(pos) { return this.data[cCode(pos)]; }
   has(pos) { return !!this.data[cCode(pos)]; }
-  delete(pos) { delete(this.data[cCode(pos)]); }
 
   update() {
     let vPos = [], tCoord = [], index = [];

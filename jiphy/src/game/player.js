@@ -5,8 +5,7 @@ self.keys = new Map();
 self.onkeydown = e => keys.set(e.code, e); 
 self.onkeyup = e => keys.delete(e.code);
 
-self.M_CLICK = false;
-
+let mouse = [false,false,false,false,false];
 self.Player = class Player {
   constructor(pos) {
     this.ray = new jRay(pos, new Vec3(0,0,7));
@@ -37,8 +36,8 @@ self.Player = class Player {
 
       this.ray.dir = new Vec3(...q1.m(f).m(q2)).m(7);
     });
-    addEventListener("mousedown", e => M_CLICK = true);
-    addEventListener("mouseup", e => M_CLICK = false);
+    addEventListener("mousedown", e => mouse[e.button] = true);
+    addEventListener("mouseup", e => mouse[e.button] = false);
   }
 
   update(dt = 1, { chunks }) {
@@ -53,7 +52,7 @@ self.Player = class Player {
       speed = 0.25 * dt;
       jump = 0;
       gravity = dt;
-      friction = new Vec3(0.98, 0.98, 0.98);
+      friction = new Vec3(0.999, 0.999, 0.999);
     }
     
     {
@@ -75,9 +74,6 @@ self.Player = class Player {
           case "Space":
             this.vel.y += jump;
             break;
-          case "ShiftLeft":
-            this.vel.y -= jump;
-            break;
           case "KeyP":
             break;
         }
@@ -91,28 +87,35 @@ self.Player = class Player {
     this.grounded = false;
     for(let chunk of chunks) {
       let box = new jBox(new Vec3(),1,1,1,-0.5,-0.5,-0.5);
-      let dir = new Vec3(...this.ray.dir);
+      let ray = this.ray.copy();
+      let bPos = [], hDir = 0;
       let boxhit = false;
-      for(let b = cCode(this.pos.s(4, []));b < cCode(this.pos.a(4, []));b++) {
-        if(chunk.get(cDecode(b)) != 0) box.src = new Vec3(...cDecode(b));
+      for(let b = cCode(this.pos.s(7, []));b < cCode(this.pos.a(8, []));b++) {
+        if(chunk.data[b] != 0) box.src = new Vec3(...cDecode(b));
         if(this.box.overlaps(box)) {
           let o = this.box.overlap(box);
           if(o.y > 0) this.grounded = true;
           this.vel.m([!o.x,!o.y,!o.z]);
           this.pos.a(o);
         }
-        if(M_CLICK && this.ray.hits(box)) {
-          this.ray.dir = this.ray.hit(box);
-          boxhit = true;
+        if((mouse[2] || mouse[0]) && ray.hits(box)) {
+          ray.dir = ray.hit(box);
+          bPos = new Vec3(...cDecode(b));
+          hDir = ray.dir.a(this.pos, new Vec3()).a([0.5,0.5,0.5]);;
         }
       }
-      if(boxhit) {
-        this.ray.dir.a(this.pos).a([0.5,0.5,0.5]);
-        this.ray.dir[0] &= 15, this.ray.dir[1] &= 255, this.ray.dir[2] &= 15;
-        chunk.set(this.ray.dir, 1);
+      if(hDir) {
+        if(mouse[2]) {
+          console.log(hDir);
+          chunk.set(hDir, 1);
+          // mouse[2] = false;
+        } 
+        if(mouse[0]) {
+          console.log(bPos);
+          chunk.set(bPos, 0);
+          mouse[0] = false;
+        }
         chunk.update();
-        M_CLICK = false;
-        this.ray.dir = dir;
       }
     }
   }

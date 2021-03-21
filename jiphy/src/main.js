@@ -2,7 +2,7 @@ import "./jiph/core.js"
 import "./jiph/math.js"
 import "./jiph/tree.js"
 
-import "./game/block.js"
+import "./game/chunk.js"
 import "./game/player.js"
 
 (function() {
@@ -42,21 +42,19 @@ import "./game/player.js"
       gl_FragColor = texture2D(uSampler, vTextureCoord) * uGlow;
     }
   `]);
-  let texture = jTexture(gl, './assets/UI.png');
+  let texture = jTexture(gl, './assets/grass.png');
   let entities = [new Player(new Vec3(8,64,8))];
   let chunks = [new Chunk(self.shader)];
 
   let camera = new jCamera();
   camera.lookAt = new Mat4();
   {
-    let i = 256 * 63;
-    console.log(i);
+    let i = 256 * 63 + 16;
     while(i--) {
       chunks[0].set([i % 16, i / 256 | 0, (i / 16 | 0) % 16], 1);
     }
     chunks[0].update();
   }
-  console.log(chunks[0].data);
 
   let scene = new jScene(gl);
 
