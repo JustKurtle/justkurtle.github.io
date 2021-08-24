@@ -26,7 +26,7 @@ self.Chunk = class Chunk {
         vPos = vPos.concat([
           -0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
            0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
-           0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
+           0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2],  
           -0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2]]); // +y
         tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
         let l = Math.floor(index.length / 6 * 4);
