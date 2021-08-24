@@ -39,19 +39,26 @@ import "./game/hungarian.js"
 
         void main(void) {
             gl_FragColor = texture2D(uSampler, vTextureCoord);
+            if(gl_FragColor.a < 0.5)
+                discard;
         }
     `]);
 
-    self.lenny = new Lenny(new Vec3(0, 0, 0));
+    self.lenny = new Lenny(new Vec3(0,1,0));
 
-    let entities = [self.lenny, new Hungarian(gl, new Vec3(0,1,0))];
+    let entities = [self.lenny];
+    let i = 100;
+    while(i--) {    
+        entities.push(new Hungarian(gl, new Vec3(Math.random() * 200 - 100, 1, Math.random() * 200 - 100), shader));
+    }
+
     let level = new Level(shader);
     level.load(gl);
 
     let camera = new jCamera();
     camera.lookAt = new Mat4();
     
-    let cRad = 0, cFwd = new Vec3(), cRgt = new Vec3();
+    let cRad = 0, cFwd = new Vec3(0,0,1), cRgt = new Vec3(1,0,0);
     addEventListener("mousemove", e => {
         cRad += e.movementX/1000;
         cFwd = new Vec3(-Math.sin(cRad), 0, Math.cos(cRad));
@@ -96,14 +103,19 @@ import "./game/hungarian.js"
             uLookAtMatrix: camera.lookAt,
             uProjectionMatrix: camera.projection
         });
+        
+        level.draw(gl);
 
         for(let e of entities) e.update(dt, lenny);
         for(let e of entities) e.draw(gl);
 
         marchProg += lenny.vel.mag * 100 * dt;
-        camera.lookAt.lookTo(lenny.pos.a([Math.sin(marchProg * 0.01) * 0.4, Math.sin(marchProg * 0.02) * 0.2, Math.cos(marchProg * 0.01) * 0.4], new Vec3()), cFwd).i();
-
-        level.draw(gl);
+        camera.lookAt.lookTo(
+            lenny.pos.a([
+                Math.sin(marchProg * 0.01) * 0.2, 
+                Math.sin(marchProg * 0.02) * 0.1, 
+                Math.cos(marchProg * 0.01) * 0.2
+            ], new Vec3()), cFwd).i();
         
         requestAnimationFrame(main);
     }

@@ -129,7 +129,7 @@ self.Level = class Level {
                     size: 3
                 },
             }),
-            uModelViewMatrix: new Mat4().t([0,-1.8,0]),
+            uModelViewMatrix: new Mat4().t([0,0,0]),
             uSampler: jTexture(gl,'assets/ground.png'),
         };
     }

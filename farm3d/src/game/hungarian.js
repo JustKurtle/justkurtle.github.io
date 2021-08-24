@@ -2,7 +2,7 @@ import "../jiph/core.js"
 import "../jiph/math.js"
 
 self.Hungarian = class Hungarian {
-    constructor(gl, pos) {
+    constructor(gl, pos, shader) {
         this.box = new jRect(pos,
             0.50, 2.0, 0.50,
            -0.25,-1.8,-0.25);
@@ -15,10 +15,10 @@ self.Hungarian = class Hungarian {
             ...jBuffers(gl, {
                 aVertexPosition: { 
                     array: [
-                         2,-2, 0, 
-                        -2,-2, 0,
-                        -2, 2, 0, 
-                         2, 2, 0, 
+                         1,-1, 0, 
+                        -1,-1, 0,
+                        -1, 1, 0, 
+                         1, 1, 0, 
                     ], 
                     size: 3
                 },
@@ -37,13 +37,17 @@ self.Hungarian = class Hungarian {
                 },
             }),
             uModelViewMatrix: new Mat4().t(this.pos),
-            uSampler: jTexture(gl,'assets/cow.png'),
+            uSampler: jTexture(gl,'assets/cow'+Math.floor(Math.random()*2)+'.png'),
         };
     }
 
     update(dt = 1, target) {
-        // this.rMat.uModelViewMatrix.lookAt(this.pos, target.pos, new Vec3(0,1,0));
-        this.rMat.uModelViewMatrix.rx(dt);
+        this.rMat.uModelViewMatrix.lookAt(this.pos, target.pos);
+
+        target.pos.s(this.pos, this.vel).norm().m(10);
+        
+        this.vel.m(0.9);
+        this.pos.a(this.vel.m(dt, []));
     }
     draw(gl) {
         this.shader.set(this.rMat);

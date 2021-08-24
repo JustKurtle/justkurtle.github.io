@@ -14,8 +14,8 @@ if(Math.Mat4 === undefined) {
         set z(_v) { this[2] = _v; }
 
         get mag() { return Math.hypot(...this); }
-        get unit() { const m = Math.hypot(...this); return new Vec3(this[0] / m, this[1] / m, this[2] / m); }
-        get norm() { const m = Math.hypot(...this); this[0] /= m; this[1] /= m; this[2] /= m; return this; }
+        get unit() { const m = Math.hypot(...this); return !m ? new Vec3 : new Vec3(this[0] / m, this[1] / m, this[2] / m); }
+        norm() { const m = Math.hypot(...this); this[0] /= m; this[1] /= m; this[2] /= m; return this; }
         dot(that) { return this[0] * that[0] + this[1] * that[1] + this[2] * that[2]; }
         cross(that) { return new Vec3(this[1] * that[2] - this[2] * that[1], this[2] * that[0] - this[0] * that[2], this[0] * that[1] - this[1] * that[0]); }
         m(that, out = this) {
@@ -248,14 +248,14 @@ if(Math.Mat4 === undefined) {
         }
 
         lookAt(eye, target, up = new Vec3(0,1,0), out = this) {
-            const f = target.s(eye).unit;
+            const f = target.s(eye, new Vec3()).unit.m(-1);
             const r = up.cross(f).unit;
             const u = f.cross(r);
             out.set([
                 r.x,u.x,f.x,eye.x,
                 r.y,u.y,f.y,eye.y,
                 r.z,u.z,f.z,eye.z,
-                    0,    0,    0,    1,
+                  0,  0,  0,    1,
             ]);
             return out;
         }
@@ -267,7 +267,7 @@ if(Math.Mat4 === undefined) {
                 r.x,u.x,f.x,eye.x,
                 r.y,u.y,f.y,eye.y,
                 r.z,u.z,f.z,eye.z,
-                    0,    0,    0,    1,
+                  0,  0,  0,    1,
             ]);
             return out;
         }

@@ -356,8 +356,13 @@
     self.jScene = class Scene {
         constructor(gl) {
             gl.enable(gl.CULL_FACE);
+
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
+            
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            
             gl.clearColor(0.0, 0.2, 0.5, 1.0);
             gl.clearDepth(1.0);
         }
