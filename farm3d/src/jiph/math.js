@@ -167,6 +167,7 @@ if(Math.Mat4 === undefined) {
                 0, 0, 1, 0,
                 0, 0, 0, 1
             ]);
+            return out;
         }
         ry(rad, out = this) {
             const c = Math.cos(rad);
@@ -177,6 +178,7 @@ if(Math.Mat4 === undefined) {
                 s, 0, c, 0,
                 0, 0, 0, 1
             ]);
+            return out;
         }
         rx(rad, out = this) {
             const c = Math.cos(rad);
@@ -187,6 +189,7 @@ if(Math.Mat4 === undefined) {
                 0, s, c, 0,
                 0, 0, 0, 1
             ]);
+            return out;
         }
         t(vec, out = this) {
             out.set(this);
@@ -281,6 +284,19 @@ if(Math.Mat4 === undefined) {
                 0, y, 0, 0,
                 0, 0, z, w,
                 0, 0,-1, 0
+            ]);
+            return out;
+        }
+        orthographic(near, far, right, top, out = this) {
+            const x = 1 / right;
+            const y = 1 / top;
+            const z = 1 / (far - near);
+            const w = -(far + near) / (far - near);
+            out.set([
+                x, 0, 0, 0,
+                0, y, 0, 0,
+                0, 0, z, w,
+                0, 0, 0, 1
             ]);
             return out;
         }

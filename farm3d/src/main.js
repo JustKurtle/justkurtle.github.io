@@ -3,11 +3,22 @@ import "./jiph/math.js"
 
 import "./game/level.js"
 import "./game/lenny.js"
-import "./game/hungarian.js"
+import "./game/Cow.js"
 
 self.settings = {
     "mouseShove": false,
     "mouseSensitivity": 0.0012,
+};
+
+self.controls = {
+    "front": "KeyW",
+    "left": "KeyA",
+    "back": "KeyS",
+    "right": "KeyD",
+
+    "dash": "Shift",
+
+    "fire": "mouse1"
 };
 
 (function() {
@@ -49,11 +60,14 @@ self.settings = {
     `]);
 
     self.lenny = new Lenny(new Vec3(1024,1,1024));
+    lenny.load(gl);
 
-    let entities = [self.lenny];
+    let entities = [];
     let i = 100;
     while(i--) {
-        entities.push(new Hungarian(gl, new Vec3(Math.random() * 2048, 1, Math.random() * 2048), shader));
+        let newCow = new Cow(new Vec3(Math.random() * 2048, 1, Math.random() * 2048), shader);
+        newCow.load(gl);
+        entities.push(newCow);
     }
 
     let level = new Level(shader);
@@ -82,6 +96,10 @@ self.settings = {
     function main(now) {
         const dt = (now - then) * 0.001;
         then = now;
+        
+        for(let e of entities) e.update(dt, lenny);
+        lenny.update(dt);
+        handleInput(keys, lenny, cFwd, cRgt);
 
         let fov = 90;
         camera.projection = new Mat4().perspective(0.1, 1000, fov, innerWidth / innerHeight);
@@ -92,26 +110,28 @@ self.settings = {
             uLookAtMatrix: camera.lookAt,
             uProjectionMatrix: camera.projection
         });
-
-        for(let e of entities) e.update(dt, lenny);
-        
-        if(keys["KeyW"]) lenny.vel.a(cFwd.m(2, []));
-        if(keys["KeyS"]) lenny.vel.s(cFwd.m(2, []));
-        if(keys["KeyA"]) lenny.vel.a(cRgt.m(2, []));
-        if(keys["KeyD"]) lenny.vel.s(cRgt.m(2, []));
         
         level.draw(gl);
         for(let e of entities) e.draw(gl);
-
         marchProg += lenny.vel.mag * 100 * dt;
-        camera.lookAt.lookTo(
-            lenny.pos.a([
-                Math.sin(marchProg * 0.01) * 0.2, 
-                Math.sin(marchProg * 0.02) * 0.1 + 0.5, 
-                Math.cos(marchProg * 0.01) * 0.2
-            ], new Vec3()), cFwd).i();
+        let camOffset = new Vec3(
+            Math.sin(marchProg * 0.01) * 0.2, 
+            Math.sin(marchProg * 0.02) * 0.1 + 0.5, 
+            Math.cos(marchProg * 0.01) * 0.2
+        );
+
+        camera.lookAt.lookTo(lenny.pos.a(camOffset, new Vec3()), cFwd).i();
+        lenny.draw(gl, marchProg);
         
         requestAnimationFrame(main);
     }
     requestAnimationFrame(main);
 })();
+
+
+function handleInput(keys, target, cFwd, cRgt) {
+    if(keys[controls.front]) target.vel.a(cFwd.m(2, []));
+    if(keys[controls.back ]) target.vel.s(cFwd.m(2, []));
+    if(keys[controls.left ]) target.vel.a(cRgt.m(2, []));
+    if(keys[controls.right]) target.vel.s(cRgt.m(2, []));
+}

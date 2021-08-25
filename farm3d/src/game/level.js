@@ -4,16 +4,18 @@ import "../jiph/math.js"
 self.Level = class Level {
     constructor(shader) {
         this.shader = shader;
-
         this.indexLength = 0;
         this.rMat = {};
     }
 
-    load(gl) {        
+    load(gl, path) {
+        // fetch(path)
+        //     .then(response => response.json())
+        //     .then(data => console.log(data));
+
         let texture = jTexture(gl,'assets/ground.png');
         let worker = new Worker('workers/terrainloader.js');
         worker.addEventListener('message', message => {
-            console.log(message.data)
             this.indexLength = message.data[2].length;
             this.rMat = {
                 ...jBuffers(gl, {
@@ -30,7 +32,7 @@ self.Level = class Level {
                         size: 3
                     },
                 }),
-                uModelViewMatrix: new Mat4().t([0,0,0]),
+                uModelViewMatrix: new Mat4(),
                 uSampler: texture,
             };
         });
