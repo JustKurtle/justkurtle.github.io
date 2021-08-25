@@ -3,7 +3,7 @@ import "./jiph/math.js"
 
 import "./game/level.js"
 import "./game/lenny.js"
-import "./game/Cow.js"
+import "./game/cow.js"
 
 self.settings = {
     "mouseShove": false,
