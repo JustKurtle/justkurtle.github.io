@@ -5,6 +5,11 @@ import "./game/level.js"
 import "./game/lenny.js"
 import "./game/hungarian.js"
 
+self.settings = {
+    "mouseShove": false,
+    "mouseSensitivity": 0.0012,
+};
+
 (function() {
     const canvas = document.querySelector("#canvas");
     self.gl = canvas.getContext("webgl2");
@@ -39,17 +44,16 @@ import "./game/hungarian.js"
 
         void main(void) {
             gl_FragColor = texture2D(uSampler, vTextureCoord);
-            if(gl_FragColor.a < 0.5)
-                discard;
+            if(gl_FragColor.a < 0.5) discard;
         }
     `]);
 
-    self.lenny = new Lenny(new Vec3(0,1,0));
+    self.lenny = new Lenny(new Vec3(1024,1,1024));
 
     let entities = [self.lenny];
     let i = 100;
-    while(i--) {    
-        entities.push(new Hungarian(gl, new Vec3(Math.random() * 200 - 100, 1, Math.random() * 200 - 100), shader));
+    while(i--) {
+        entities.push(new Hungarian(gl, new Vec3(Math.random() * 2048, 1, Math.random() * 2048), shader));
     }
 
     let level = new Level(shader);
@@ -60,30 +64,15 @@ import "./game/hungarian.js"
     
     let cRad = 0, cFwd = new Vec3(0,0,1), cRgt = new Vec3(1,0,0);
     addEventListener("mousemove", e => {
-        cRad += e.movementX/1000;
+        cRad += e.movementX * settings.mouseSensitivity;
         cFwd = new Vec3(-Math.sin(cRad), 0, Math.cos(cRad));
         cRgt = new Vec3( Math.cos(cRad), 0, Math.sin(cRad));
-        lenny.vel.a(cFwd.m(-e.movementY, []));
+        if(settings.mouseShove) lenny.vel.a(cFwd.m(-e.movementY, []));
     }, false);
     
-    addEventListener("keydown", e => {
-        switch(e.code) {
-            case "KeyW":
-                lenny.vel.a(cFwd.m(10, []));
-                break;
-            case "KeyS":
-                lenny.vel.s(cFwd.m(10, []));
-                break;
-            case "KeyA":
-                lenny.vel.a(cRgt.m(10, []));
-                break;
-            case "KeyD":
-                lenny.vel.s(cRgt.m(10, []));
-                break;
-            default:
-                break;
-        }
-    }, false);
+    let keys = {};
+    addEventListener("keydown", e => keys[e.code] = true, false);
+    addEventListener("keyup", e => keys[e.code] = false, false);
 
     let scene = new jScene(gl);
     
@@ -103,17 +92,22 @@ import "./game/hungarian.js"
             uLookAtMatrix: camera.lookAt,
             uProjectionMatrix: camera.projection
         });
-        
-        level.draw(gl);
 
         for(let e of entities) e.update(dt, lenny);
+        
+        if(keys["KeyW"]) lenny.vel.a(cFwd.m(2, []));
+        if(keys["KeyS"]) lenny.vel.s(cFwd.m(2, []));
+        if(keys["KeyA"]) lenny.vel.a(cRgt.m(2, []));
+        if(keys["KeyD"]) lenny.vel.s(cRgt.m(2, []));
+        
+        level.draw(gl);
         for(let e of entities) e.draw(gl);
 
         marchProg += lenny.vel.mag * 100 * dt;
         camera.lookAt.lookTo(
             lenny.pos.a([
                 Math.sin(marchProg * 0.01) * 0.2, 
-                Math.sin(marchProg * 0.02) * 0.1, 
+                Math.sin(marchProg * 0.02) * 0.1 + 0.5, 
                 Math.cos(marchProg * 0.01) * 0.2
             ], new Vec3()), cFwd).i();
         
