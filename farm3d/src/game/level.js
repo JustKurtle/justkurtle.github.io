@@ -1,48 +1,78 @@
 import "../jiph/core.js"
 import "../jiph/math.js"
 
-self.Level = class Level {
-    constructor(shader) {
-        this.shader = shader;
-        this.indexLength = 0;
-        this.rMat = {};
-    }
+const shaderSrc = [`
+attribute vec4 aVertexPosition;
+attribute vec2 aTextureCoord;
 
-    load(gl, path) {
-        // fetch(path)
-        //     .then(response => response.json())
-        //     .then(data => console.log(data));
+uniform mat4 uModelViewMatrix;
 
-        let texture = jTexture(gl,'assets/ground.png');
-        let worker = new Worker('workers/terrainloader.js');
-        worker.addEventListener('message', message => {
-            this.indexLength = message.data[2].length;
-            this.rMat = {
-                ...jBuffers(gl, {
-                    aVertexPosition: { 
-                        array: message.data[0], 
-                        size: 3
-                    },
-                    aTextureCoord: { 
-                        array: message.data[1],
-                        size: 2
-                    },
-                    index: { 
-                        array: message.data[2], 
-                        size: 3
-                    },
-                }),
-                uModelViewMatrix: new Mat4(),
-                uSampler: texture,
-            };
-        });
-        worker.postMessage([32, 32]);
-    }
+uniform mat4 uProjectionMatrix;
+uniform mat4 uLookAtMatrix;
+
+varying highp vec2 vTextureCoord;
+
+void main(void) {
+    gl_Position = aVertexPosition * (uModelViewMatrix * uLookAtMatrix * uProjectionMatrix);
+    vTextureCoord = aTextureCoord;
+}`,`
+varying highp vec2 vTextureCoord;
+
+uniform sampler2D uSampler;
+uniform highp vec3 uLight;
+
+void main(void) {
+    gl_FragColor = texture2D(uSampler, vTextureCoord);
+    if(gl_FragColor.a < 0.5) discard;
+}
+`];
+let shader;
+
+self.Level = {
+    create() {
+        return {
+            "shader": shader,
+            "rMat": {},
+
+            "spawnableAreas": []
+        }
+    },
+
+    load(level, gl, { path, camera }) {
+        if(!shader) { shader = jShader(gl, shaderSrc); level.shader = shader; }
+        fetch(path)
+            .then(response => response.json())
+            .then(data => {
+                let texture = jTexture(gl,'assets/ground.png');
+                level.rMat = {
+                    ...jBuffers(gl, {
+                        aVertexPosition: { 
+                            array: data.vertexArray, 
+                            size: 3
+                        },
+                        aTextureCoord: { 
+                            array: data.texCoordArray,
+                            size: 2
+                        },
+                        index: { 
+                            array: data.indexArray, 
+                            size: 3, 
+                            length: data.indexArray.length
+                        },
+                    }),
+                    uModelViewMatrix: new Mat4(),
+                    uSampler: texture,
     
-    draw(gl) {
-        if(!this.rMat.index) return;
-        this.shader.set(this.rMat);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.rMat.index.buffer);
-        gl.drawElements(gl.TRIANGLES, this.indexLength, gl.UNSIGNED_SHORT, 0);
+                    uLookAtMatrix: camera.lookAt,
+                    uProjectionMatrix: camera.projection
+                };
+            });
+    },
+    
+    draw(level, gl) {
+        if(!level.rMat.index) return; // if there is no index buffer, exit
+        level.shader.set(level.rMat);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, level.rMat.index.buffer);
+        gl.drawElements(gl.TRIANGLES, level.rMat.index.length, gl.UNSIGNED_SHORT, 0);
     }
 };

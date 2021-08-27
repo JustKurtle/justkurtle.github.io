@@ -1,52 +1,55 @@
 import "../jiph/core.js"
 import "../jiph/math.js"
 
-let lennyShader;
-self.Lenny = class Lenny {
-    constructor(pos) {
-        this.box = new jRect(pos,
-            2, 2, 2,
-           -1,-1,-1);
-        this.pos = pos;
-        this.vel = new Vec3();
+const shaderSrc = [`
+attribute vec4 aVertexPosition;
+attribute vec2 aTextureCoord;
 
-        this.foods = [Infinity];
-        this.hands = [0, 0];
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
 
-        this.shader = lennyShader;
-        this.rMat = {};
-        this.lMat = {};
-    }
+varying highp vec2 vTextureCoord;
 
-    load(gl) {
-        let texture = jTexture(gl, 'assets/arm.png');
-        if(!lennyShader) {
-            lennyShader = jShader(gl, [`
-                attribute vec4 aVertexPosition;
-                attribute vec2 aTextureCoord;
+void main(void) {
+    gl_Position = aVertexPosition * (uModelViewMatrix * uProjectionMatrix);
+    vTextureCoord = aTextureCoord;
+}`,`
+varying highp vec2 vTextureCoord;
 
-                uniform mat4 uModelViewMatrix;
-                uniform mat4 uProjectionMatrix;
+uniform sampler2D uSampler;
 
-                varying highp vec2 vTextureCoord;
+void main(void) {
+    gl_FragColor = texture2D(uSampler, vTextureCoord);
+    if(gl_FragColor.a < 0.5) discard;
+}
+`];
+let shader;
 
-                void main(void) {
-                    gl_Position = aVertexPosition * (uModelViewMatrix * uProjectionMatrix);
-                    vTextureCoord = aTextureCoord;
-                }`,`
-                varying highp vec2 vTextureCoord;
+self.Lenny = {
+    create(pos) {
+        return {
+            "box": new jRect(pos,
+                 2, 2, 2,
+                -1,-1,-1),
+            "pos": pos,
+            "vel": new Vec3(),
 
-                uniform sampler2D uSampler;
+            "dashCD": 0,
 
-                void main(void) {
-                    gl_FragColor = texture2D(uSampler, vTextureCoord);
-                    if(gl_FragColor.a < 0.5) discard;
-                }
-            `]);
-            this.shader = lennyShader;
+            "bAttacking": false,
+            
+            "shader": shader,
+            "rMat": {},
+            "lMat": {},
         }
-        this.indexLength = 6;
-        this.rMat = {
+    },
+
+    load(lenny, gl) {
+        let texture = jTexture(gl, 'assets/arm.png');
+        let projection = new Mat4().orthographic(0, 1000, 1, innerHeight / innerWidth);
+        if(!shader) { shader = jShader(gl, shaderSrc); lenny.shader = shader; }
+
+        lenny.rMat = {
             ...jBuffers(gl, {
                 aVertexPosition: { 
                     array: [
@@ -68,14 +71,15 @@ self.Lenny = class Lenny {
                 },
                 index: { 
                     array: [0,1,2, 0,2,3], 
-                    size: 3
+                    size: 3,
+                    length: 6
                 },
             }),
-            uModelViewMatrix: new Mat4().t([0.2,-0.65]),
-            uProjectionMatrix: new Mat4().orthographic(0, 1000, 1, innerHeight/innerWidth),
+            uModelViewMatrix: new Mat4(),
+            uProjectionMatrix: projection,
             uSampler: texture,
         };
-        this.lMat = {
+        lenny.lMat = {
             ...jBuffers(gl, {
                 aVertexPosition: { 
                     array: [
@@ -97,31 +101,55 @@ self.Lenny = class Lenny {
                 },
                 index: { 
                     array: [0,1,2, 0,2,3], 
-                    size: 3
+                    size: 3,
+                    length: 6
                 },
             }),
-            uModelViewMatrix: new Mat4().t([-0.2,-0.65]),
-            uProjectionMatrix: new Mat4().orthographic(0, 1000, 1, innerHeight/innerWidth),
+            uModelViewMatrix: new Mat4(),
+            uProjectionMatrix: projection,
             uSampler: texture,
         };
-    }
+    },
 
-    update(dt = 1) {
-        this.vel.m(0.9);
-        this.pos.a(this.vel.m(dt, []));
-    }
-
-    draw(gl, marchProg) {
-        let offset = new Vec3(Math.cos(marchProg * 0.01) * 0.4, Math.sin(marchProg * 0.01) * 0.5);
-        this.rMat.uModelViewMatrix.t([offset.x + 1, offset.y - 0.7]),
-        this.lMat.uModelViewMatrix.t([offset.x - 1,-offset.y - 0.7]),
-
-        this.shader.set(this.rMat);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.rMat.index.buffer);
-        gl.drawElements(gl.TRIANGLES, this.indexLength, gl.UNSIGNED_SHORT, 0);
+    control(lenny, queue, controls, cFwd, cRgt) {
+        let speed = 2;
+        let move = new Vec3();
         
-        this.shader.set(this.lMat);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.lMat.index.buffer);
-        gl.drawElements(gl.TRIANGLES, this.indexLength, gl.UNSIGNED_SHORT, 0);
+        if(queue[controls.dash ] && lenny.dashCD <= 0) {
+            speed = 300;
+            lenny.dashCD = 256;
+        }
+
+        if(queue[controls.front]) move.a(cFwd);
+        if(queue[controls.back ]) move.s(cFwd);
+        if(queue[controls.left ]) move.a(cRgt);
+        if(queue[controls.right]) move.s(cRgt);
+
+        lenny.bAttacking = false;
+        if(queue[controls.fire]) lenny.bAttacking = true;
+
+        lenny.vel.a(move.unit.m(speed));
+        lenny.dashCD--;
+    },
+
+    update(lenny, dt = 1) {
+        lenny.vel.m(0.9); // friction
+        lenny.pos.a(lenny.vel.m(dt, [])); // update position
+    },
+
+    draw(lenny, gl, marchProg) {
+        let offset = Math.cos(marchProg * 0.01) * 0.4; // the value to oscillate
+        
+        lenny.rMat.uProjectionMatrix.orthographic(0, 1000, 1, innerHeight / innerWidth); // reset the orthographic projection in case the screen is resized
+
+        lenny.rMat.uModelViewMatrix.t([offset + 1,-0.5 * offset - 0.7]), // set position of right arm
+        lenny.shader.set(lenny.rMat); // set the shader values with the material
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lenny.rMat.index.buffer); // index buffer things
+        gl.drawElements(gl.TRIANGLES, lenny.rMat.index.length, gl.UNSIGNED_SHORT, 0);
+        
+        lenny.lMat.uModelViewMatrix.t([offset - 1, 0.5 * offset - 0.7]), // set position of left arm
+        lenny.shader.set(lenny.lMat); // set the shader values with the material
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lenny.lMat.index.buffer); // index buffer things
+        gl.drawElements(gl.TRIANGLES, lenny.lMat.index.length, gl.UNSIGNED_SHORT, 0);
     }
 };

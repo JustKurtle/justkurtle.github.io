@@ -1,0 +1,17 @@
+{
+    "settings": {
+        "mouseShove": false,
+        "mouseSensitivity": 0.0012,
+        "fov": 90
+    },
+    "controls": {
+        "front": "KeyW",
+        "left": "KeyA",
+        "back": "KeyS",
+        "right": "KeyD",
+    
+        "dash": "ShiftLeft",
+    
+        "fire": "Mouse0"
+    }
+}
