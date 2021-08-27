@@ -65,6 +65,7 @@ fetch("config.json")
 
     self.then = 0;
     function main(now) {
+        requestAnimationFrame(main);
         const dt = (now - then) * 0.001;
         then = now;
         
@@ -88,8 +89,6 @@ fetch("config.json")
         Level.draw(level, gl);
         for(let e of entities) Cow.draw(e, gl);
         Lenny.draw(lenny, gl, marchProg);
-        
-        requestAnimationFrame(main);
     }
     requestAnimationFrame(main);
 })();
