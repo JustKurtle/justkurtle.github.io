@@ -1,4 +1,4 @@
-document.querySelector("#title").addEventListener("click", onClickTitle, false);
+document.querySelector("#title").addEventListener("click", loadImages, false);
 
 function onClickTitle(e) {
   let targetElement = document.querySelector("#mb-center"); // 
@@ -19,5 +19,3 @@ function loadImages(e) {
         }
     });
 }
-
-loadImages();
