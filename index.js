@@ -10,20 +10,20 @@ function loadImages(e) {
 
   // let image = document.createElement("image");
   // image.src = "_gallery/Important"+ Math.floor(Math.random() * 16 + 1) +"/";
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "./_gallery/Important"+ Math.floor(Math.random() * 16 + 1), true);
-  xhr.responseType = 'document';
-  xhr.onload = () => {
+  var request = new XMLHttpRequest();
+  request.open("GET", "./_gallery/Important"+ Math.floor(Math.random() * 16 + 1), true);
+  request.responseType = 'document';
+  request.onload = () => {
     if (xhr.status === 200) {
       var elements = xhr.response.getElementsByTagName("a");
       for (let x of elements) {
         if (x.href.match(/\.(jpe?g|png|gif)$/)) { 
           let img = document.createElement("img");
           img.src = x.href;
-          document.querySelector("#gallery").appendChild(img);
+          targetElement.appendChild(img);
         } 
       };
-    } 
+    }
     else {
       alert('Request failed. Returned status of ' + xhr.status);
     }
