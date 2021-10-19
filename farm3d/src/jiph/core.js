@@ -2,10 +2,10 @@
 {
     function check(sMin, sMax, oMin, oMax) {
         const O1 = sMin <= oMax && sMin >= oMin,
-                    O2 = oMin <= sMax && oMin >= sMin;
+              O2 = oMin <= sMax && oMin >= sMin;
         if(O1 || O2) {
             const min1 = oMax - sMin,
-                        min2 = oMin - sMax;
+                  min2 = oMin - sMax;
             return (Math.abs(min1) <= Math.abs(min2)) ? min1 : min2;
         }
         return null;
@@ -355,7 +355,7 @@
     // todo
     self.jScene = class Scene {
         constructor(gl) {
-            gl.enable(gl.CULL_FACE);
+            // gl.enable(gl.CULL_FACE);
 
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
@@ -372,11 +372,20 @@
         }
 
         draw(gl) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-            gl.bindTexture(gl.TEXTURE_2D, this.frametexture);
+            // gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+            // gl.bindTexture(gl.TEXTURE_2D, this.frametexture);
+        }
+        draw(gl, rMat, shader) {
+            // gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+            // gl.bindTexture(gl.TEXTURE_2D, this.frametexture);
+            
+            shader.set(rMat);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rMat.index.buffer);
+            gl.drawElements(gl.TRIANGLES, rMat.index.length, gl.UNSIGNED_SHORT, 0);
         }
     };
 
+    // todo
     self.jCamera = class Camera {
         projection;
         lookAt;

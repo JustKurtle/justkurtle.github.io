@@ -1,5 +1,6 @@
 import "./jiph/core.js"
-import "./jiph/math.js"
+import "../deps/gl-matrix.js";
+Object.assign(self, glMatrix);
 
 import "./game/level.js"
 import "./game/lenny.js"
@@ -27,30 +28,38 @@ fetch("config.json")
     canvas.onclick = canvas.requestPointerLock;
     
     let camera = new jCamera();
-    camera.lookAt = new Mat4();
-    camera.projection = new Mat4();
+    camera.projection = mat4.create();
+    camera.lookAt = mat4.create();
 
+
+    let level = Level.create();
+    console.time("level load");
+    Level.load(level, gl, { path: "assets/level1.json", camera });
+    console.timeEnd("level load");
+
+    self.lenny = Lenny.create([1024,1,1024]);
+    console.time("lenny load");
+    Lenny.load(lenny, gl);
+    console.timeEnd("lenny load");
 
     let entities = [];
     let i = 100;
     while(i--) {
-        let newCow = Cow.create(new Vec3(Math.random() * 2048, 1, Math.random() * 2048));
+        let newCow = Cow.create([level.spawnableAreas[0], level.spawnableAreas[1], level.spawnableAreas[2]]);
         Cow.load(newCow, gl, { camera });
         entities.push(newCow);
     }
-
-    let level = Level.create();
-    Level.load(level, gl, { path: "assets/level1.json", camera });
     
-    self.lenny = Lenny.create(new Vec3(1024,1,1024));
-    Lenny.load(lenny, gl);
-    
-    let cRad = 0, cFwd = new Vec3(0,0,1), cRgt = new Vec3(1,0,0);
+    let cRad = 0, cFwd = vec3.create(0,0,1), cRgt = vec3.create(1,0,0);
     addEventListener("mousemove", e => {
         cRad += e.movementX * settings.mouseSensitivity;
-        cFwd = new Vec3(-Math.sin(cRad), 0, Math.cos(cRad));
-        cRgt = new Vec3( Math.cos(cRad), 0, Math.sin(cRad));
-        if(settings.mouseShove) lenny.vel.a(cFwd.m(-e.movementY, []));
+        vec3.set(cFwd, -Math.sin(cRad), 0, Math.cos(cRad));
+        vec3.set(cRgt,  Math.cos(cRad), 0, Math.sin(cRad));
+        if(settings.mouseShove) {
+            let tempFwd = vec3.create();
+            vec3.multiply(tempFwd, tempFwd, [-e.movementY,-e.movementY,-e.movementY]);
+            vec3.add(lenny.pos, lenny.pos, tempFwd);
+        }
     }, false);
     
     let queue = {};
@@ -65,7 +74,6 @@ fetch("config.json")
 
     self.then = 0;
     function main(now) {
-        requestAnimationFrame(main);
         const dt = (now - then) * 0.001;
         then = now;
         
@@ -73,22 +81,35 @@ fetch("config.json")
         Lenny.update(lenny, dt);
         Lenny.control(lenny, queue, controls, cFwd, cRgt);
 
+        // {
+        //     let i = entities.length
+        //     while(i--) {
+        //         let j = i;
+        //         while(j--) { 
+        //             entities[i].box.overlaps(entities[j]);
+        //         }
+        //     }
+        // }
         
         marchProg += lenny.vel.mag * 100 * dt;
-        let camOffset = new Vec3(
+        let camOffset = vec3.fromValues(
             Math.sin(marchProg * 0.01) * 0.2, 
             Math.sin(marchProg * 0.02) * 0.1 + 0.5, 
             Math.cos(marchProg * 0.01) * 0.2
         );
 
-        camera.projection.perspective(0.1, 1000, settings.fov, innerWidth / innerHeight);
-        camera.lookAt.lookTo(lenny.pos.a(camOffset, new Vec3()), cFwd).i();
+        mat4.perspective(camera.projection, settings.fov, innerWidth / innerHeight, 0.1, 1000);
+
+        mat4.translate(camera.lookAt, camera.lookAt, lenny.pos);
+        mat4.rotate(camera.lookAt, camera.lookAt, cRad, [0,1,0]);
 
         scene.clear(gl);
         
         Level.draw(level, gl);
         for(let e of entities) Cow.draw(e, gl);
         Lenny.draw(lenny, gl, marchProg);
+
+        requestAnimationFrame(main);
     }
     requestAnimationFrame(main);
 })();

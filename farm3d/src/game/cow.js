@@ -1,5 +1,4 @@
 import "../jiph/core.js"
-import "../jiph/math.js"
 
 const shaderSrc = [`
 attribute vec4 aVertexPosition;
@@ -34,8 +33,8 @@ self.Cow = {
             "box": new jRect(pos,
                  2, 2, 2,
                 -1,-1,-1),
-            "pos": pos,
-            "vel": new Vec3(),
+            "pos": vec3.clone(pos),
+            "vel": vec3.create(),
 
             "hunger": 10,
         
@@ -44,11 +43,12 @@ self.Cow = {
         }
     },
 
-    load(cow, gl, { camera }) {
+    load(out, gl, { camera }) {
         let texture = jTexture(gl, 'assets/cow'+Math.floor(Math.random()*2)+'.png');
-        if(!shader) { shader = jShader(gl, shaderSrc); cow.shader = shader; }
+        let modelView = mat4.create();
+        if(!shader) { shader = jShader(gl, shaderSrc); out.shader = shader; }
 
-        cow.rMat = {
+        out.rMat = {
             ...jBuffers(gl, {
                 aVertexPosition: { 
                     array: [
@@ -74,7 +74,7 @@ self.Cow = {
                     length: 6
                 },
             }),
-            uModelViewMatrix: new Mat4(),
+            uModelViewMatrix: modelView,
             uSampler: texture,
 
             uLookAtMatrix: camera.lookAt,
@@ -82,22 +82,27 @@ self.Cow = {
         };
     },
 
-    update(cow, dt = 1, target) {
-        cow.rMat.uModelViewMatrix.lookAt(cow.pos, target.pos);
+    update(out, dt = 1, target) {
+        mat4.lookAt(out.rMat.uModelViewMatrix, out.pos, target.pos, [0,1,0]); // look at the player
 
-        target.pos.s(cow.pos, cow.vel).norm().m(cow.hunger);
-        if(target.bAttacking && cow.box.overlaps(target.box))
-            cow.hunger *= 0.85;
+        vec3.subtract(out.vel, out.pos, target.pos); // distance from player
+        vec3.normalize(out.vel, out.vel); // normalize distance to make it direction
+        vec3.multiply(out.vel, out.vel, [out.hunger, out.hunger, out.hunger]); 
+        // if(target.bAttacking && out.box.overlaps(target.box))
+        //     out.hunger *= 0.85;
         
-        cow.hunger += 0.001;
+        out.hunger += 0.001;
 
-        cow.vel.m(0.9);
-        cow.pos.a(cow.vel.m(dt, []));
+        vec3.multiply(out.vel, out.vel, [0.9, 0.9, 0.9]);
+
+        let tempVel = vec3.create();
+        vec3.multiply(tempVel, out.vel, [dt, dt, dt])
+        vec3.add(out.pos, out.pos, tempVel);
     },
 
-    draw(cow, gl) {
-        cow.shader.set(cow.rMat);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cow.rMat.index.buffer);
-        gl.drawElements(gl.TRIANGLES, cow.rMat.index.length, gl.UNSIGNED_SHORT, 0);
+    draw(out, gl) {
+        out.shader.set(out.rMat);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, out.rMat.index.buffer);
+        gl.drawElements(gl.TRIANGLES, out.rMat.index.length, gl.UNSIGNED_SHORT, 0);
     },
 };

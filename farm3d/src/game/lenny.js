@@ -1,5 +1,4 @@
 import "../jiph/core.js"
-import "../jiph/math.js"
 
 const shaderSrc = [`
 attribute vec4 aVertexPosition;
@@ -31,8 +30,8 @@ self.Lenny = {
             "box": new jRect(pos,
                  2, 2, 2,
                 -1,-1,-1),
-            "pos": pos,
-            "vel": new Vec3(),
+            "pos": vec3.clone(pos),
+            "vel": vec3.create(),
 
             "dashCD": 0,
 
@@ -44,12 +43,15 @@ self.Lenny = {
         }
     },
 
-    load(lenny, gl) {
+    load(out, gl) {
         let texture = jTexture(gl, 'assets/arm.png');
-        let projection = new Mat4().orthographic(0, 1000, 1, innerHeight / innerWidth);
-        if(!shader) { shader = jShader(gl, shaderSrc); lenny.shader = shader; }
+        let modelView = mat4.create();
+        let projection = mat4.create();
+        mat4.ortho(projection, -1, 1, -innerWidth/innerHeight, innerWidth/innerHeight, 0.1, 1000);
 
-        lenny.rMat = {
+        if(!shader) { shader = jShader(gl, shaderSrc); out.shader = shader; }
+
+        out.rMat = {
             ...jBuffers(gl, {
                 aVertexPosition: { 
                     array: [
@@ -75,11 +77,11 @@ self.Lenny = {
                     length: 6
                 },
             }),
-            uModelViewMatrix: new Mat4(),
+            uModelViewMatrix: modelView,
             uProjectionMatrix: projection,
             uSampler: texture,
         };
-        lenny.lMat = {
+        out.lMat = {
             ...jBuffers(gl, {
                 aVertexPosition: { 
                     array: [
@@ -105,51 +107,60 @@ self.Lenny = {
                     length: 6
                 },
             }),
-            uModelViewMatrix: new Mat4(),
+            uModelViewMatrix: modelView,
             uProjectionMatrix: projection,
             uSampler: texture,
         };
     },
 
-    control(lenny, queue, controls, cFwd, cRgt) {
+    control(out, queue, controls, cFwd, cRgt) {
         let speed = 2;
-        let move = new Vec3();
+        let move = vec3.create();
         
-        if(queue[controls.dash ] && lenny.dashCD <= 0) {
+        if(queue[controls.dash ] && out.dashCD <= 0) {
             speed = 300;
-            lenny.dashCD = 256;
+            out.dashCD = 256;
         }
 
-        if(queue[controls.front]) move.a(cFwd);
-        if(queue[controls.back ]) move.s(cFwd);
-        if(queue[controls.left ]) move.a(cRgt);
-        if(queue[controls.right]) move.s(cRgt);
+        if(queue[controls.front]) vec3.add(move, move, cFwd);
+        if(queue[controls.back ]) vec3.sub(move, move, cFwd);
+        if(queue[controls.left ]) vec3.add(move, move, cRgt);
+        if(queue[controls.right]) vec3.sub(move, move, cRgt);
 
-        lenny.bAttacking = false;
-        if(queue[controls.fire]) lenny.bAttacking = true;
+        // out.bAttacking = false;
+        // if(queue[controls.fire]) out.bAttacking = true;
 
-        lenny.vel.a(move.unit.m(speed));
-        lenny.dashCD--;
+        vec3.normalize(move, move);
+        vec3.multiply(move, move, [speed, speed, speed]);
+        vec3.add(out.vel, out.vel, move);
+        out.dashCD--;
     },
 
-    update(lenny, dt = 1) {
-        lenny.vel.m(0.9); // friction
-        lenny.pos.a(lenny.vel.m(dt, [])); // update position
+    update(out, dt = 1) {
+
+
+        vec3.multiply(out.vel, out.vel, [0.9, 0.9, 0.9]);
+
+        let tempVel = vec3.create();
+        vec3.multiply(tempVel, out.vel, [dt, dt, dt]);
+        vec3.add(out.pos, out.pos, tempVel);
     },
 
-    draw(lenny, gl, marchProg) {
+    draw(out, gl, marchProg) {
         let offset = Math.cos(marchProg * 0.01) * 0.4; // the value to oscillate
         
-        lenny.rMat.uProjectionMatrix.orthographic(0, 1000, 1, innerHeight / innerWidth); // reset the orthographic projection in case the screen is resized
+        mat4.ortho(out.rMat.uProjectionMatrix, -1, 1, -innerWidth/innerHeight, innerWidth/innerHeight, 0.1, 1000); // reset the orthographic projection in case the screen is resized
 
-        lenny.rMat.uModelViewMatrix.t([offset + 1,-0.5 * offset - 0.7]), // set position of right arm
-        lenny.shader.set(lenny.rMat); // set the shader values with the material
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lenny.rMat.index.buffer); // index buffer things
-        gl.drawElements(gl.TRIANGLES, lenny.rMat.index.length, gl.UNSIGNED_SHORT, 0);
+        // out.rMat.uModelViewMatrix.t([offset + 1,-0.5 * offset - 0.7]), // set position of right arm
+        mat4.translate(out.rMat.uModelViewMatrix, out.rMat.uModelViewMatrix, [offset + 1,-0.5 * offset - 0.7, 1]);
+        out.shader.set(out.rMat); // set the shader values with the material
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, out.rMat.index.buffer); // index buffer things
+        gl.drawElements(gl.TRIANGLES, out.rMat.index.length, gl.UNSIGNED_SHORT, 0);
         
-        lenny.lMat.uModelViewMatrix.t([offset - 1, 0.5 * offset - 0.7]), // set position of left arm
-        lenny.shader.set(lenny.lMat); // set the shader values with the material
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lenny.lMat.index.buffer); // index buffer things
-        gl.drawElements(gl.TRIANGLES, lenny.lMat.index.length, gl.UNSIGNED_SHORT, 0);
+        // out.lMat.uModelViewMatrix.t([offset - 1, 0.5 * offset - 0.7]), // set position of left arm
+        mat4.translate(out.lMat.uModelViewMatrix, out.lMat.uModelViewMatrix, [offset - 1, 0.5 * offset - 0.7, 1]);
+        out.shader.set(out.lMat); // set the shader values with the material
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, out.lMat.index.buffer); // index buffer things
+        gl.drawElements(gl.TRIANGLES, out.lMat.index.length, gl.UNSIGNED_SHORT, 0);
     }
 };

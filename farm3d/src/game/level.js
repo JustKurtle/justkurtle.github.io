@@ -1,5 +1,4 @@
 import "../jiph/core.js"
-import "../jiph/math.js"
 
 const shaderSrc = [`
 attribute vec4 aVertexPosition;
@@ -22,7 +21,7 @@ uniform sampler2D uSampler;
 uniform highp vec3 uLight;
 
 void main(void) {
-    gl_FragColor = texture2D(uSampler, vTextureCoord);
+    gl_FragColor = texture2D(uSampler, vTextureCoord) * vec4(0.3, 0.7, 0.2, 1.0).rgba;
     if(gl_FragColor.a < 0.5) discard;
 }
 `];
@@ -31,10 +30,10 @@ let shader;
 self.Level = {
     create() {
         return {
+            "spawnableAreas": [],
+
             "shader": shader,
             "rMat": {},
-
-            "spawnableAreas": []
         }
     },
 
@@ -44,6 +43,7 @@ self.Level = {
             .then(response => response.json())
             .then(data => {
                 let texture = jTexture(gl,'assets/ground.png');
+                let modelView = mat4.create();
                 level.rMat = {
                     ...jBuffers(gl, {
                         aVertexPosition: { 
@@ -60,12 +60,13 @@ self.Level = {
                             length: data.indexArray.length
                         },
                     }),
-                    uModelViewMatrix: new Mat4(),
+                    uModelViewMatrix: modelView,
                     uSampler: texture,
     
                     uLookAtMatrix: camera.lookAt,
                     uProjectionMatrix: camera.projection
                 };
+                level.spawnableAreas = data.spawnableAreas;
             });
     },
     
