@@ -9,12 +9,12 @@ function loadImages(e) {
   let targetElement = document.querySelector("#gallery"); //
   let Path = "Important" + Math.floor(Math.random() * 16 + 1);
 
-  fetch("_gallery/manifest.json")
+  fetch("gallery/manifest.json")
     .then(response => response.json())
     .then(data => {
         for(let x of data[Path]) {
           let img = document.createElement("img");
-          img.src = "./_gallery/"+Path+"/"+x;
+          img.src = "./gallery/"+Path+"/"+x;
           targetElement.appendChild(img);
         }
     });
