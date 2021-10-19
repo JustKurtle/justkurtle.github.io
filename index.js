@@ -8,29 +8,29 @@ function onClickTitle(e) {
 function loadImages(e) {
   let targetElement = document.querySelector("#gallery"); //
 
-  // let image = document.createElement("image");
-  // image.src = "_gallery/Important"+ Math.floor(Math.random() * 16 + 1) +"/";
   var request = new XMLHttpRequest();
+  request.addEventListener("load", onLoad, true);
+  request.addEventListener("fail", onFail, true);
   request.open("GET", "./_gallery/Important"+ Math.floor(Math.random() * 16 + 1), true);
   request.responseType = 'document';
-  request.onload = () => {
-    if (xhr.status === 200) {
-      var elements = xhr.response.getElementsByTagName("a");
-      for (let x of elements) {
-        if (x.href.match(/\.(jpe?g|png|gif)$/)) { 
-          let img = document.createElement("img");
-          img.src = x.href;
-          targetElement.appendChild(img);
-        } 
-      };
-    }
-    else {
-      alert('Request failed. Returned status of ' + xhr.status);
-    }
+  request.send();
+
+  function onLoad() {
+    var elements = request.response.getElementsByTagName("a");
+    for (let x of elements) {
+      if (x.href.match(/\.(jpe?g|png|gif)$/)) { 
+        let img = document.createElement("img");
+        x.href.replace("https://magnumshart.com/", "");
+        img.src = x.href;
+        targetElement.appendChild(img);
+        console.log(x.href);
+      } 
+    };
   }
-  xhr.send()
-  
-  // targetElement.appendChild(image);
+
+  function onFail() {  
+    alert('Request failed. Returned status of ' + request.status);
+  }
 }
 
 loadImages();
