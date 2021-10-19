@@ -11,7 +11,7 @@ function loadImages(e) {
   // let image = document.createElement("image");
   // image.src = "_gallery/Important"+ Math.floor(Math.random() * 16 + 1) +"/";
   var xhr = new XMLHttpRequest();
-  xhr.open("GET", "/_gallery/Important"+ Math.floor(Math.random() * 16 + 1), true);
+  xhr.open("GET", "./_gallery/Important"+ Math.floor(Math.random() * 16 + 1), true);
   xhr.responseType = 'document';
   xhr.onload = () => {
     if (xhr.status === 200) {
