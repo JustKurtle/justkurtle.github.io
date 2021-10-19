@@ -7,30 +7,17 @@ function onClickTitle(e) {
 
 function loadImages(e) {
   let targetElement = document.querySelector("#gallery"); //
+  let Path = "Important" + Math.floor(Math.random() * 16 + 1);
 
-  var request = new XMLHttpRequest();
-  request.addEventListener("load", onLoad, true);
-  request.addEventListener("fail", onFail, true);
-  request.open("GET", "./_gallery/Important"+ Math.floor(Math.random() * 16 + 1), true);
-  request.responseType = 'document';
-  request.send();
-
-  function onLoad() {
-    var elements = request.response.getElementsByTagName("a");
-    for (let x of elements) {
-      if (x.href.match(/\.(jpe?g|png|gif)$/)) { 
-        let img = document.createElement("img");
-        x.href.replace("https://magnumshart.com/", "");
-        img.src = x.href;
-        targetElement.appendChild(img);
-        console.log(x.href);
-      } 
-    };
-  }
-
-  function onFail() {  
-    alert('Request failed. Returned status of ' + request.status);
-  }
+  fetch("_gallery/manifest.json")
+    .then(response => response.json())
+    .then(data => {
+        for(let x of data[Path]) {
+          let img = document.createElement("img");
+          img.src = "./_gallery/"+Path+"/"+x;
+          targetElement.appendChild(img);
+        }
+    });
 }
 
 loadImages();
