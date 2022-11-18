@@ -1,7 +1,8 @@
 {
     "settings": {
         "mouseShove": false,
-        "mouseSensitivity": 0.0012,
+        "repelCows": true,
+        "mouseSensitivity": 0.0012, 
         "fov": 1.5707963267948966
     },
     "controls": {

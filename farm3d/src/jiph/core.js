@@ -5,197 +5,191 @@
               O2 = oMin <= sMax && oMin >= sMin;
         if(O1 || O2) {
             const min1 = oMax - sMin,
-                  min2 = oMin - sMax;
-            return (Math.abs(min1) <= Math.abs(min2)) ? min1 : min2;
+                    min2 = oMin - sMax;
+            if(min1 * min1 <= min2 * min2)
+                return min1;
+            return min2;
         }
-        return null;
+        return 0;
     }
-
-    self.jRect = class jRect {
-        constructor(src, w, h, xOff = 0, yOff = 0) {
-            this.src = src;
-            this.xOff = xOff; 
-            this.yOff = yOff;
-            this.w = w;
-            this.h = h;
-        }
-
-        get x() { return this.src.x + this.xOff; }
-        get y() { return this.src.y + this.yOff; }
-        get xm() { return this.x + this.w; }
-        get ym() { return this.y + this.h; }
-
-        overlap(that) {
-            const x = check(this.x, this.xm, that.x, that.xm);
-            const y = check(this.y, this.ym, that.y, that.ym);
-
-            switch(Math.min(x * x, y * y)) {
-                case x * x:
-                    return new Vec3(x, 0);
-                case y * y:
-                    return new Vec3(0, y);
-                default:
-                    return new Vec3();
-            }
-        }
-        overlaps(that) {
-            return !(
-                this.x  >= that.xm ||
-                this.xm <= that.x  ||
-                this.y  >= that.ym ||
-                this.ym <= that.y
-            );
-        }
-        contains(that) {
-            return (
-                this.x  <= that.x  ||
-                this.xm >= that.xm ||
-                this.y  <= that.y  ||
-                this.ym >= that.ym
-            );
-        }
+    
+    // returns minimum distance to correct the overlap
+    self.rectOverlap = (aPos, aSize, bPos, bSize) => {
+        const x = check(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
+        const y = check(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
+    
+        if(x * x < y * y) 
+            return [x, 0];
+        return [0, y];
     };
-    self.jLine = class jLine {
-        constructor(src, dir) {
-            this.src = src;
-            this.dir = dir;
-        }
-
-        get x() { return this.src[0]; }
-        get y() { return this.src[1]; }
-        get xm() { return this.x + this.dir[0]; }
-        get ym() { return this.y + this.dir[1]; }
-
-        overlap(that) {
-            if(this.overlaps(that)) {
-                const mx = Math.min((that.x - this.x) / this.dir.x, (that.xm - this.x) / this.dir.x);
-                const my = Math.min((that.y - this.y) / this.dir.y, (that.ym - this.y) / this.dir.y);
-                return this.dir.m(Math.max(mx, my), new Vec3()).a(this.src);
-            }
-            return this.dir.a(this.src, new Vec3());
-        }
-        overlaps(that) {
-            if (
-                Math.min(this.x, this.xm) >= that.xm ||
-                Math.max(this.x, this.xm) <= that.x  ||
-                Math.min(this.y, this.ym) >= that.ym ||
-                Math.max(this.y, this.ym) <= that.y
-            ) return false;
-            const l = new Vec3(this.dir.unit.y,-this.dir.unit.x);
-            const c = [
-                l.dot([that.x   - this.x, that.y  - this.y,0]),
-                l.dot([that.x   - this.x, that.ym - this.y,0]),
-                l.dot([that.xm - this.x, that.y   - this.y,0]),
-                l.dot([that.xm - this.x, that.ym - this.y,0])
-            ];
-            const min = Math.min(...c), max = Math.max(...c);
-            return !(0 >= max || 0 <= min);
-        }
+    self.rectContain = (aPos, aSize, bPos, bSize) => {
+        const x = check(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
+        const y = check(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
+    
+        if(x * x < y * y) 
+            return [x, 0];
+        return [0, y];
     };
-
-    self.jBox = class jBox {
-        constructor(src, w, h, d, xOff = 0, yOff = 0, zOff = 0) {
-            this.src = src;
-            this.xOff = xOff;
-            this.yOff = yOff;
-            this.zOff = zOff;
-            this.w = w;
-            this.h = h;
-            this.d = d;
-        }
-
-        get x() { return this.src[0] + this.xOff; }
-        get y() { return this.src[1] + this.yOff; }
-        get z() { return this.src[2] + this.zOff; }
-        get xm() { return this.x + this.w; }
-        get ym() { return this.y + this.h; }
-        get zm() { return this.z + this.d; }
-
-        overlap(that) {
-            const x = check(this.x, this.xm, that.x, that.xm);
-            const y = check(this.y, this.ym, that.y, that.ym);
-            const z = check(this.z, this.zm, that.z, that.zm);
-
-            switch(Math.min(x * x, y * y, z * z)) {
-                case x * x:
-                    return new Vec3(x, 0, 0);
-                case y * y:
-                    return new Vec3(0, y, 0);
-                case z * z:
-                    return new Vec3(0, 0, z);
-                default:
-                    return new Vec3();
-            }
-        }
-        overlaps(that) {
-            return !(
-                this.x  >= that.xm ||
-                this.xm <= that.x   ||
-                this.y  >= that.ym ||
-                this.ym <= that.y   ||
-                this.z  >= that.zm ||
-                this.zm <= that.z
-            );
-        }
-        contains(that) {
-            return (
-                this.x  <= that.x   ||
-                this.xm >= that.xm ||
-                this.y  <= that.y   ||
-                this.ym >= that.ym ||
-                this.z  <= that.z   ||
-                this.zm >= that.zm
-            );
-        }
+    // returns true if the rectangles have any common ground
+    self.rectOverlaps = (aPos, aSize, bPos, bSize) => {
+        return !(
+            aPos[0] >= bPos[0] + bSize[0] ||
+            aPos[0] + aSize[0] <= bPos[0] ||
+            aPos[1] >= bPos[1] + bSize[1] ||
+            aPos[1] + aSize[1] <= bPos[1]
+        );
     };
-    self.jRay = class jRay {
-        constructor(src, dir) {
-            this.src = src;
-            this.dir = dir;
-        }
-
-        get x() { return this.src[0]; }
-        get y() { return this.src[1]; }
-        get z() { return this.src[2]; }
-        get xm() { return this.src[0] + this.dir[0]; }
-        get ym() { return this.src[1] + this.dir[1]; }
-        get zm() { return this.src[2] + this.dir[2]; }
-
-        copy() {
-            return new jRay(new Vec3(...this.src), new Vec3(...this.dir));
-        }
-        hit(that) {
-            if(this.hits(that)) {
-                const mx = Math.min((that.x - this.x) / this.dir.x, (that.xm - this.x) / this.dir.x);
-                const my = Math.min((that.y - this.y) / this.dir.y, (that.ym - this.y) / this.dir.y);
-                const mz = Math.min((that.z - this.z) / this.dir.z, (that.zm - this.z) / this.dir.z);
-                return this.dir.m(Math.max(mx, my, mz), new Vec3());
-            }
-            return new Vec3();
-        }
-        hits(that) {
-            if (
-                Math.min(this.x, this.xm) >= that.xm ||
-                Math.max(this.x, this.xm) <= that.x  ||
-                Math.min(this.y, this.ym) >= that.ym ||
-                Math.max(this.y, this.ym) <= that.y  ||
-                Math.min(this.z, this.zm) >= that.zm ||
-                Math.max(this.z, this.zm) <= that.z
-            ) return false;
-            const l = this.dir.cross(that.src.s(this.src, []));
-            const c = [
-                l.dot([that.x  - this.x, that.y  - this.y, that.z  - this.z]),
-                l.dot([that.x  - this.x, that.ym - this.y, that.z  - this.z]),
-                l.dot([that.xm - this.x, that.y  - this.y, that.z  - this.z]),
-                l.dot([that.xm - this.x, that.ym - this.y, that.z  - this.z]),
-                l.dot([that.x  - this.x, that.y  - this.y, that.zm - this.z]),
-                l.dot([that.x  - this.x, that.ym - this.y, that.zm - this.z]),
-                l.dot([that.xm - this.x, that.y  - this.y, that.zm - this.z]),
-                l.dot([that.xm - this.x, that.ym - this.y, that.zm - this.z])
-            ];
-            const min = Math.min(...c), max = Math.max(...c);
-            return !(0 >= max || 0 <= min);
-        }
+    // returns true if rectangle b is entirely contained within rectangle a 
+    self.rectContains = (aPos, aSize, bPos, bSize) => {
+        return !(
+            aPos[0] >= bPos[0] ||
+            aPos[0] + aSize[0] <= bPos[0] + bSize[0] ||
+            aPos[1] >= bPos[1] ||
+            aPos[1] + aSize[1] <= bPos[1] + bSize[1]
+        );
+    };
+    
+    self.lineRectOverlap = (linePos, lineVector, rectPos, rectSize) => {
+        rectPos = [rectPos[0] - linePos[0], rectPos[1] - linePos[1]]; // Make rectPos relative to linePos
+        lineVector = [lineVector[0] || 1e-50, lineVector[1] || 1e-50]; // Make sure no exact 0s
+        const slope = lineVector[1] / lineVector[0];
+        let out = 1;
+    
+        let y1 = rectPos[0] * slope, 
+            y2 = (rectPos[0] + rectSize[0]) * slope, 
+            x1 = rectPos[1] / slope, 
+            x2 = (rectPos[1] + rectSize[1]) / slope;
+    
+        if(rectPos[1] <= y1 && rectPos[1] + rectSize[1] >= y1)
+            out = Math.min(out, y1 / lineVector[1]);
+        if(rectPos[1] <= y2 && rectPos[1] + rectSize[1] >= y2)
+            out = Math.min(out, y2 / lineVector[1]);
+        if(rectPos[0] <= x1 && rectPos[0] + rectSize[0] >= x1)
+            out = Math.min(out, x1 / lineVector[0]);
+        if(rectPos[0] <= x2 && rectPos[0] + rectSize[0] >= x2)
+            out = Math.min(out, x2 / lineVector[0]);
+    
+        if (out >= 0) 
+            return out;
+        return 1;
+    };
+    self.lineRectOverlaps = (linePos, lineVector, rectPos, rectSize) => {
+        rectPos = [rectPos[0] - linePos[0], rectPos[1] - linePos[1]]; // Make rectPos relative to linePos
+        lineVector = [lineVector[0] || 1e-50, lineVector[1] || 1e-50]; // Make sure no exact 0s
+        const slope = lineVector[1] / lineVector[0];
+        let out = 1;
+    
+        let y1 = rectPos[0] * slope, 
+            y2 = (rectPos[0] + rectSize[0]) * slope, 
+            x1 = rectPos[1] / slope, 
+            x2 = (rectPos[1] + rectSize[1]) / slope;
+    
+        if(rectPos[1] <= y1 && rectPos[1] + rectSize[1] >= y1)
+            out = Math.min(out, y1 / lineVector[1]);
+        if(rectPos[1] <= y2 && rectPos[1] + rectSize[1] >= y2)
+            out = Math.min(out, y2 / lineVector[1]);
+        if(rectPos[0] <= x1 && rectPos[0] + rectSize[0] >= x1)
+            out = Math.min(out, x1 / lineVector[0]);
+        if(rectPos[0] <= x2 && rectPos[0] + rectSize[0] >= x2)
+            out = Math.min(out, x2 / lineVector[0]);
+    
+        return !(out < 0 || out > 1);
+    };
+    // returns minimum distance to correct the overlap
+    self.boxOverlap = (aPos, aSize, bPos, bSize) => {
+      const x = check(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
+      const y = check(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
+      const z = check(aPos[2], aPos[2] + aSize[2], bPos[2], bPos[2] + bSize[2]);
+    
+      if(Math.min(x * x, y * y, z * z) === x * x)
+          return [x, 0, 0];
+      if(Math.min(x * x, y * y, z * z) === y * y)
+          return [0, y, 0];
+      return [0, 0, z];
+    };
+    // returns true if the boxes have any common ground
+    self.boxOverlaps = (aPos, aSize, bPos, bSize) => {
+      return !(
+          aPos[0] >= bPos[0] + bSize[0] ||
+          aPos[0] + aSize[0] <= bPos[0] ||
+          aPos[1] >= bPos[1] + bSize[1] ||
+          aPos[1] + aSize[1] <= bPos[1] ||
+          aPos[2] >= bPos[2] + bSize[2] ||
+          aPos[2] + aSize[2] <= bPos[2]
+      );
+    };
+    // returns true if box b is entirely contained within box a 
+    self.boxContains = (aPos, aSize, bPos, bSize) => {
+      return !(
+          aPos[0] >= bPos[0] ||
+          aPos[0] + aSize[0] <= bPos[0] + bSize[0] ||
+          aPos[1] >= bPos[1] ||
+          aPos[1] + aSize[1] <= bPos[1] + bSize[1] ||
+          aPos[2] >= bPos[2] ||
+          aPos[2] + aSize[2] <= bPos[2] + bSize[2]
+      );
+    }
+    self.rayBoxOverlap = (rayPos, rayVector, boxPos, boxSize) => {
+        boxPos = [boxPos[0] - rayPos[0], boxPos[1] - rayPos[1], boxPos[2] - rayPos[2]]; // Make boxPos relative to rayPos
+        rayVector = [rayVector[0] || 1e-50, rayVector[1] || 1e-50, rayVector[2] || 1e-50]; // Make sure no exact 0s
+        const slopeYX = rayVector[1] / rayVector[0];
+        const slopeZX = rayVector[2] / rayVector[0];
+        let out = 1;
+    
+        let z1 = boxPos[0] * slopeZX, 
+            z2 = (boxPos[0] + boxSize[0]) * slopeZX, 
+            y1 = boxPos[0] * slopeYX, 
+            y2 = (boxPos[0] + boxSize[0]) * slopeYX, 
+            x1 = boxPos[1] / slopeYX,  
+            x2 = (boxPos[1] + boxSize[1]) / slopeYX;
+    
+            
+        if(boxPos[0] <= z1 && boxPos[0] + boxSize[0] >= z1)
+            out = Math.min(out, z1 / rayVector[0]);
+        if(boxPos[0] <= z2 && boxPos[0] + boxSize[0] >= z2)
+            out = Math.min(out, z2 / rayVector[0]);
+        if(boxPos[1] <= y1 && boxPos[1] + boxSize[1] >= y1)
+            out = Math.min(out, y1 / rayVector[1]);
+        if(boxPos[1] <= y2 && boxPos[1] + boxSize[1] >= y2)
+            out = Math.min(out, y2 / rayVector[1]);
+        if(boxPos[0] <= x1 && boxPos[0] + boxSize[0] >= x1)
+            out = Math.min(out, x1 / rayVector[0]);
+        if(boxPos[0] <= x2 && boxPos[0] + boxSize[0] >= x2)
+            out = Math.min(out, x2 / rayVector[0]);
+    
+        if (out >= 0) 
+            return out;
+        return 1;
+    };
+    self.rayBoxOverlaps = (rayPos, rayVector, boxPos, boxSize) => {
+        boxPos = [boxPos[0] - rayPos[0], boxPos[1] - rayPos[1], boxPos[2] - rayPos[2]]; // Make boxPos relative to rayPos
+        rayVector = [rayVector[0] || 1e-50, rayVector[1] || 1e-50, rayVector[2] || 1e-50]; // Make sure no exact 0s
+        const slopeYX = rayVector[1] / rayVector[0];
+        const slopeZX = rayVector[2] / rayVector[0];
+        let out = 1;
+    
+        let z1 = boxPos[0] * slopeZX, 
+            z2 = (boxPos[0] + boxSize[0]) * slopeZX, 
+            y1 = boxPos[0] * slopeYX, 
+            y2 = (boxPos[0] + boxSize[0]) * slopeYX, 
+            x1 = boxPos[1] / slopeYX,  
+            x2 = (boxPos[1] + boxSize[1]) / slopeYX;
+    
+            
+        if(boxPos[0] <= z1 && boxPos[0] + boxSize[0] >= z1)
+            out = Math.min(out, z1 / rayVector[0]);
+        if(boxPos[0] <= z2 && boxPos[0] + boxSize[0] >= z2)
+            out = Math.min(out, z2 / rayVector[0]);
+        if(boxPos[1] <= y1 && boxPos[1] + boxSize[1] >= y1)
+            out = Math.min(out, y1 / rayVector[1]);
+        if(boxPos[1] <= y2 && boxPos[1] + boxSize[1] >= y2)
+            out = Math.min(out, y2 / rayVector[1]);
+        if(boxPos[0] <= x1 && boxPos[0] + boxSize[0] >= x1)
+            out = Math.min(out, x1 / rayVector[0]);
+        if(boxPos[0] <= x2 && boxPos[0] + boxSize[0] >= x2)
+            out = Math.min(out, x2 / rayVector[0]);
+    
+        return !(out < 0 || out > 1);
     };
 }
 
@@ -308,13 +302,13 @@
                         setters[info.name] = v => gl.uniform4iv(location, v);
                         break;
                     case gl.FLOAT_MAT2:
-                        setters[info.name] = v => gl.uniformMatrix2fv(location, false, v);
+                        setters[info.name] = v => gl.uniformMatrix2fv(location, true, v);
                         break;
                     case gl.FLOAT_MAT3:
-                        setters[info.name] = v => gl.uniformMatrix3fv(location, false, v);
+                        setters[info.name] = v => gl.uniformMatrix3fv(location, true, v);
                         break;
                     case gl.FLOAT_MAT4:
-                        setters[info.name] = v => gl.uniformMatrix4fv(location, false, v);
+                        setters[info.name] = v => gl.uniformMatrix4fv(location, true, v);
                         break;
                     case gl.SAMPLER_2D:
                     case gl.SAMPLER_CUBE:
@@ -365,16 +359,18 @@
             
             gl.clearColor(0.0, 0.2, 0.5, 1.0);
             gl.clearDepth(1.0);
+
+            this.enable = gl.enable;
+            this.depthFunc = gl.depthFunc;
+            this.blendFunc = gl.blendFunc;
+            this.clearColor = gl.clearColor;
+            this.clearDepth = gl.clearDepth;
         }
 
         clear(gl) {
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         }
 
-        draw(gl) {
-            // gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-            // gl.bindTexture(gl.TEXTURE_2D, this.frametexture);
-        }
         draw(gl, rMat, shader) {
             // gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
             // gl.bindTexture(gl.TEXTURE_2D, this.frametexture);
@@ -386,8 +382,12 @@
     };
 
     // todo
-    self.jCamera = class Camera {
-        projection;
-        lookAt;
+    self.jCamera = {
+        create() {
+            return {
+                "projectionMatrix": [],
+                "lookAtMatrix": [],
+            };
+        }
     };
 }

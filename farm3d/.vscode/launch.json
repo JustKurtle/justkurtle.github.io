@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "launch",
-            "request": "launch",
+            "name": "Attach",
             "type": "firefox",
+            "request": "attach",
             "url": "http://localhost:5500",
-            "webRoot": "${workspaceFolder}"
-        },
+            "webRoot": "${workspaceFolder}",
+        }
     ]
 }

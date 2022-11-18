@@ -1,71 +1,44 @@
 import "../jiph/core.js"
 
-const shaderSrc = [`
-attribute vec4 aVertexPosition;
-attribute vec2 aTextureCoord;
-
-uniform mat4 uModelViewMatrix;
-
-uniform mat4 uProjectionMatrix;
-uniform mat4 uLookAtMatrix;
-
-varying highp vec2 vTextureCoord;
-
-void main(void) {
-    gl_Position = aVertexPosition * (uModelViewMatrix * uLookAtMatrix * uProjectionMatrix);
-    vTextureCoord = aTextureCoord;
-}`,`
-varying highp vec2 vTextureCoord;
-
-uniform sampler2D uSampler;
-uniform highp vec3 uLight;
-
-void main(void) {
-    gl_FragColor = texture2D(uSampler, vTextureCoord);
-    if(gl_FragColor.a < 0.5) discard;
-}
-`];
-let shader;
-
-self.Cow = {
+const Cow = {
     create(pos) {
-        return {
-            "box": new jRect(pos,
-                 2, 2, 2,
-                -1,-1,-1),
+        let output = {
             "pos": vec3.clone(pos),
+            "size": vec3.fromValues(2, 2, 2),
             "vel": vec3.create(),
 
             "hunger": 10,
-        
-            "shader": shader,
-            "rMat": {}
-        }
+
+            "shaderMaterial": {}
+        };
+        return output;
     },
 
-    load(out, gl, { camera }) {
-        let texture = jTexture(gl, 'assets/cow'+Math.floor(Math.random()*2)+'.png');
+    load(out, gl, { camera, variant = Math.floor(Math.random()*2) }) {
+        let texture = jTexture(gl, 'assets/textures/cow'+variant+'.png');
         let modelView = mat4.create();
-        if(!shader) { shader = jShader(gl, shaderSrc); out.shader = shader; }
 
-        out.rMat = {
+        let vertexArray = [
+            -1, 1, 0, 
+             1, 1, 0, 
+             1,-1, 0, 
+            -1,-1, 0,
+        ];
+        let texCoordArray = [
+            1,0,
+            0,0,
+            0,1,
+            1,1,
+        ];
+
+        out.shaderMaterial = {
             ...jBuffers(gl, {
                 aVertexPosition: { 
-                    array: [
-                        -1, 1, 0, 
-                         1, 1, 0, 
-                         1,-1, 0, 
-                        -1,-1, 0,
-                    ], 
+                    array: vertexArray,
                     size: 3
                 },
                 aTextureCoord: { 
-                    array: [
-                        1,0,
-                        0,0,
-                        0,1,
-                        1,1,
-                    ],
+                    array: texCoordArray,
                     size: 2
                 },
                 index: { 
@@ -77,32 +50,37 @@ self.Cow = {
             uModelViewMatrix: modelView,
             uSampler: texture,
 
-            uLookAtMatrix: camera.lookAt,
-            uProjectionMatrix: camera.projection,
+            uLookAtMatrix: camera.lookAtMatrix,
+            uProjectionMatrix: camera.projectionMatrix,
         };
     },
 
     update(out, dt = 1, target) {
-        mat4.lookAt(out.rMat.uModelViewMatrix, out.pos, target.pos, [0,1,0]); // look at the player
+        let targetDistance = vec3.create();
 
-        vec3.subtract(out.vel, out.pos, target.pos); // distance from player
-        vec3.normalize(out.vel, out.vel); // normalize distance to make it direction
-        vec3.multiply(out.vel, out.vel, [out.hunger, out.hunger, out.hunger]); 
-        // if(target.bAttacking && out.box.overlaps(target.box))
-        //     out.hunger *= 0.85;
-        
-        out.hunger += 0.001;
+        vec3.subtract(targetDistance, target.pos, out.pos);  // distance from target
+        vec3.normalize(out.vel, targetDistance); // normalize distance to make it direction
+        // vec3.multiply(out.vel, out.vel, [out.hunger, out.hunger, out.hunger]);
+
+        mat4.targetTo(
+            out.shaderMaterial.uModelViewMatrix, 
+            out.pos, 
+            target.pos, 
+            vec3.fromValues(0, 1, 0)); // look at the player
 
         vec3.multiply(out.vel, out.vel, [0.9, 0.9, 0.9]);
-
+        
         let tempVel = vec3.create();
-        vec3.multiply(tempVel, out.vel, [dt, dt, dt])
+        vec3.multiply(tempVel, out.vel, [dt, dt, dt]);
         vec3.add(out.pos, out.pos, tempVel);
     },
 
     draw(out, gl) {
-        out.shader.set(out.rMat);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, out.rMat.index.buffer);
-        gl.drawElements(gl.TRIANGLES, out.rMat.index.length, gl.UNSIGNED_SHORT, 0);
+        APP.assets.shaders.cow.set(out.shaderMaterial);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, out.shaderMaterial.index.buffer);
+        gl.drawElements(gl.TRIANGLES, out.shaderMaterial.index.length, gl.UNSIGNED_SHORT, 0);
     },
 };
+
+Object.freeze(Cow);
+export default Cow;

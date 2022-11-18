@@ -3437,6 +3437,12 @@ THE SOFTWARE.
     out[13] = -(y0 * eyex + y1 * eyey + y2 * eyez);
     out[14] = -(z0 * eyex + z1 * eyey + z2 * eyez);
     out[15] = 1;
+
+    // [x0,x1,x2,-(x0 * eyex + x1 * eyey + x2 * eyez)]
+    // [y0,y1,y2,-(y0 * eyex + y1 * eyey + y2 * eyez)]
+    // [z0,z1,z2,-(z0 * eyex + z1 * eyey + z2 * eyez)]
+    // [ 0, 0, 0, 1]
+
     return out;
   }
   /**
