@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "edge",
+            "type": "firefox",
             "request": "launch",
-            "version": "canary",
-            "name": "Launch Canary against localhost",
+            "version": "developer",
+            "name": "Launch against localhost",
             "url": "http://127.0.0.1:5500",
             "webRoot": "${workspaceFolder}"
         }

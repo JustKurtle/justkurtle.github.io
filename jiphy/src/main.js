@@ -72,7 +72,7 @@ import "./game/player.js"
           break;
       }
     }
-    camera.projection = new Mat4().perspective(0.1, 1000, fov, innerWidth / innerHeight);
+    camera.projection = new Mat4().perspective(0.1, 100000, fov, innerWidth / innerHeight);
 
     scene.clear(gl);
     

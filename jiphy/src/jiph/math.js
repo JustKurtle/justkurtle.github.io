@@ -192,9 +192,9 @@ if(Math.Mat4 === undefined) {
     }
     t(vec, out = this) {
       out.set(this);
-      out[ 3] = vec[0];
-      out[ 7] = vec[1] || 0;
-      out[11] = vec[2] || 0;
+      out[12] = vec[0];
+      out[13] = vec[1] || 0;
+      out[14] = vec[2] || 0;
       return out;
     }
     s(vec, out = this) {

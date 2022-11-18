@@ -57,9 +57,9 @@ body {
 
   color: transparent;
 
-  background: -webkit-linear-gradient(to right, #f00, #0f0, #00f);
-  background: -moz-linear-gradient(to right, #f00, #0f0, #00f);
-  background: linear-gradient(to right, #f00, #0f0, #00f);
+  background: -webkit-linear-gradient(to right, #861cff, #e90000);
+  background: -moz-linear-gradient(to right, #861cff, #e90000);
+  background: linear-gradient(to right, #861cff, #e90000);
 
   background-clip: text;
   -webkit-background-clip: text;
@@ -67,8 +67,8 @@ body {
 }
 .gallery-title:hover {
   border-radius: 5px;
-  border-left: 2px solid #f00;
-  border-right: 2px solid #00f;
+  border-left: 2px solid #861cff;
+  border-right: 2px solid #e90000;
 }
 
 .gallery-img {
@@ -125,4 +125,32 @@ body {
 .project:hover {
   background-color: #2d1141;
   border-bottom: solid #5b2697;
+}
+
+
+
+@keyframes gradientCycle {
+  from {
+    color: transparent;
+  
+    background: -webkit-linear-gradient(to right, #f00, #0f0, #00f);
+    background: -moz-linear-gradient(to right, #f00, #0f0, #00f);
+    background: linear-gradient(to right, #f00, #0f0, #00f);
+  
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  to {
+    color: transparent;
+  
+    background: -webkit-linear-gradient(to right, #0f0, #f00, #00f);
+    background: -moz-linear-gradient(to right, #0f0, #f00, #00f);
+    background: linear-gradient(to right, #0f0, #f00, #00f);
+  
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }

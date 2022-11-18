@@ -1,4 +1,5 @@
 let gallery;
+
 fetch("gallery/manifest.json")
   .then(response => response.json())
   .then(data => {
@@ -8,11 +9,11 @@ fetch("gallery/manifest.json")
 
 document.querySelector(".gallery-title").addEventListener("click", loadImages, false);
 
-document.querySelector(".title").addEventListener("click", loadImages, false);
+document.querySelector(".title").addEventListener("click", onClickTitle, false);
 
 function onClickTitle(e) {
   let targetElement = document.querySelector(".mb-center"); // 
-  targetElement.innerHTML += "Moby-Dick; or, The Whale is an 1851 novel by American writer Herman Melville. The book is the sailor Ishmael's narrative of the obsessive quest of Ahab, captain of the whaling ship Pequod, for revenge on Moby Dick, the giant white sperm whale that on the ship's previous voyage bit off Ahab's leg at the knee."[el.innerHTML.length] || "";
+  targetElement.innerHTML += moby[targetElement.innerHTML.length] || "";
 }
 
 function loadImages(e) {

@@ -28,7 +28,7 @@ self.Chunk = class Chunk {
            0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
            0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2],  
           -0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2]]); // +y
-        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        tCoord = tCoord.concat([0.25,0, 0.5,0, 0.5,0.5, 0.25,0.5]);
         let l = Math.floor(index.length / 6 * 4);
         index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
       }
@@ -38,7 +38,7 @@ self.Chunk = class Chunk {
            0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2], 
            0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2], 
           -0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2]]); // -y
-        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        tCoord = tCoord.concat([0.5,0, 0.75,0, 0.75,0.5, 0.5,0.5]);
         let l = Math.floor(index.length / 6 * 4);
         index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
       }
@@ -48,7 +48,7 @@ self.Chunk = class Chunk {
            0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
            0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
            0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2]]); // +z
-        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        tCoord = tCoord.concat([0.5,1, 0.5,0.5, 0.75,0.5, 0.75,1]);
         let l = Math.floor(index.length / 6 * 4);
         index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
       }
@@ -58,7 +58,7 @@ self.Chunk = class Chunk {
           -0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
           -0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
           -0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2]]); // -z
-        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        tCoord = tCoord.concat([0.25,1, 0.25,0.5, 0.5,0.5, 0.5,1]);
         let l = Math.floor(index.length / 6 * 4);
         index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
       }
@@ -68,7 +68,7 @@ self.Chunk = class Chunk {
            0.5 + pos[0],-0.5 + pos[1], 0.5 + pos[2], 
            0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2], 
           -0.5 + pos[0], 0.5 + pos[1], 0.5 + pos[2]]); // +x
-        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        tCoord = tCoord.concat([0.25,1, 0,1, 0,0.5, 0.25,0.5]);
         let l = Math.floor(index.length / 6 * 4);
         index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
       }
@@ -78,7 +78,7 @@ self.Chunk = class Chunk {
            0.5 + pos[0], 0.5 + pos[1],-0.5 + pos[2], 
            0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2], 
           -0.5 + pos[0],-0.5 + pos[1],-0.5 + pos[2]]); // -x
-        tCoord = tCoord.concat([0,0, 1,0, 1,1, 0,1]);
+        tCoord = tCoord.concat([0.75,0.5, 1,0.5, 1,1, 0.75,1]);
         let l = Math.floor(index.length / 6 * 4);
         index = index.concat([0 + l, 1 + l, 2 + l,  0 + l, 2 + l, 3 + l]);
       }
