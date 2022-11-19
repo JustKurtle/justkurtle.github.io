@@ -35,17 +35,17 @@ async function onload() {
             APP.assets.models.level1 = data;
         });
     // load shaders
-    await fetch("/assets/shaders/cow.hlsl")
+    await fetch("assets/shaders/cow.hlsl")
         .then(response => response.text())
         .then(data => APP.assets.shaders.cow = jShader(APP.gl, data
             .replaceAll("#VERTEX", "")
             .split("#FRAGMENT")) );
-    await fetch("/assets/shaders/lenny.hlsl")
+    await fetch("assets/shaders/lenny.hlsl")
         .then(response => response.text())
         .then(data => APP.assets.shaders.lenny = jShader(APP.gl, data
             .replaceAll("#VERTEX", "")
             .split("#FRAGMENT")) );
-    await fetch("/assets/shaders/level.hlsl")
+    await fetch("assets/shaders/level.hlsl")
         .then(response => response.text())
         .then(data => APP.assets.shaders.level = jShader(APP.gl, data
             .replaceAll("#VERTEX", "")
