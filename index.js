@@ -1,7 +1,7 @@
 addEventListener("load", async e => {
   let gallery;
 
-  fetch("gallery/manifest.json")
+  await fetch("gallery/manifest.json")
     .then(response => response.json())
     .then(data => gallery = data);
     
@@ -26,5 +26,5 @@ addEventListener("load", async e => {
       targetElement.appendChild(img);
     }
   }
-  setTimeout(loadImages, 50);
+  loadImages();
 }, false);
