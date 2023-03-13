@@ -1,0 +1,31 @@
+.image {
+
+	animation: spin 2.5s linear infinite;
+	
+}
+
+.box {
+	display: flex;
+  	justify-content: center;
+	background-color: powderblue;
+	height: 300px;
+	padding-top: 50px;
+	padding-right: 50px;
+	padding-bottom: 50px;
+	padding-left: 50px;
+}
+
+@keyframes spin {
+
+	0% {
+		width: 200px; height: 200px;
+}
+
+	50% {
+		width: 200px; height: 200px; transform: rotate(180deg);
+}
+	100% {
+		width: 200px; height: 200px; transform: rotate(360deg);
+}
+
+}
