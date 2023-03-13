@@ -127,30 +127,17 @@ body {
   border-bottom: solid #5b2697;
 }
 
+.jimmy {
+  width: auto;
+  height: auto;
+  text-align: center;
+  text-decoration: none;
+  padding: 4px 10px;
+  color: #D8DEE9;
 
-
-@keyframes gradientCycle {
-  from {
-    color: transparent;
+  background-color: transparent; 
+}
   
-    background: -webkit-linear-gradient(to right, #f00, #0f0, #00f);
-    background: -moz-linear-gradient(to right, #f00, #0f0, #00f);
-    background: linear-gradient(to right, #f00, #0f0, #00f);
-  
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  to {
-    color: transparent;
-  
-    background: -webkit-linear-gradient(to right, #0f0, #f00, #00f);
-    background: -moz-linear-gradient(to right, #0f0, #f00, #00f);
-    background: linear-gradient(to right, #0f0, #f00, #00f);
-  
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+.jimmy:hover {
+  background-color: #2d1141;
 }
