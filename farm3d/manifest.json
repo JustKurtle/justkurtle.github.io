@@ -1,0 +1,16 @@
+{
+    "models": [
+        "level1.json"
+    ],
+    "shaders": [
+        "cow.hlsl",
+        "lenny.hlsl",
+        "level.hlsl"
+    ],
+    "textures": [
+        "arm.png",
+        "cow0.png",
+        "cow1.png",
+        "ground.png"
+    ]
+}

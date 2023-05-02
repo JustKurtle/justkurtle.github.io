@@ -7,5 +7,26 @@
         "**/.DS_Store": true,
         "**/Thumbs.db": true
     },
-    "hide-files.files": []
+    "hide-files.files": [],
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#f8d9c6",
+        "activityBar.background": "#f8d9c6",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#15aa4e",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "commandCenter.border": "#15202b99",
+        "sash.hoverBorder": "#f8d9c6",
+        "statusBar.background": "#f2ba99",
+        "statusBar.foreground": "#15202b",
+        "statusBarItem.hoverBackground": "#ec9b6c",
+        "statusBarItem.remoteBackground": "#f2ba99",
+        "statusBarItem.remoteForeground": "#15202b",
+        "titleBar.activeBackground": "#f2ba99",
+        "titleBar.activeForeground": "#15202b",
+        "titleBar.inactiveBackground": "#f2ba9999",
+        "titleBar.inactiveForeground": "#15202b99"
+    },
+    "peacock.color": "#f2ba99",
+    "liveServer.settings.port": 5501
 }

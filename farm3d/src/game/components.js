@@ -13,17 +13,16 @@ const Components = {
     rigidBody() {
         return {
             "angularVelocity": vec3.create(),
-            "angularMomentum": vec3.create(),
+            "angularMomentum": 0,
             "linearVelocity": vec3.create(),
-            "linearMomentum": vec3.create(),
+            "linearMomentum": 0,
         };
     },
     entityController() {
         return {
             "actions": {},
             "movement": vec3.create(),
-            "movementSpeed": 2,
-            "grounded": false
+            "movementSpeed": 30,
         };
     },
     camera() {
@@ -42,7 +41,7 @@ const Components = {
             "right": vec3.fromValues(1,0,0),
             "up": vec3.fromValues(0,1,0),
         };
-    },
+    }, 
     boxCollider() {
         return { 
             "size": vec3.fromValues(2, 2, 2) 

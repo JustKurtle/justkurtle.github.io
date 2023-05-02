@@ -174,17 +174,17 @@
         image.onload = function() {
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
-
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            
+            gl.generateMipmap(gl.TEXTURE_2D);
         };
         image.src = path;
+        
         return texture;
     };
     self.jShader = function(gl, source) {
         const vShader = gl.createShader(gl.VERTEX_SHADER);
+        const fShader = gl.createShader(gl.FRAGMENT_SHADER);
+
         gl.shaderSource(vShader, source[0]);
         gl.compileShader(vShader);
         if (!gl.getShaderParameter(vShader, gl.COMPILE_STATUS)) {
@@ -192,8 +192,7 @@
             gl.deleteShader(vShader);
             return -1;
         }
-
-        const fShader = gl.createShader(gl.FRAGMENT_SHADER);
+        
         gl.shaderSource(fShader, source[1]);
         gl.compileShader(fShader);
         if (!gl.getShaderParameter(fShader, gl.COMPILE_STATUS)) {
@@ -205,6 +204,10 @@
         const program = gl.createProgram();
         gl.attachShader(program, vShader);
         gl.attachShader(program, fShader);
+
+        gl.deleteShader(vShader);
+        gl.deleteShader(fShader);
+
         gl.linkProgram(program);
 
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
@@ -218,19 +221,21 @@
             while(i--) {
                 const info = gl.getActiveAttrib(program, i);
                 const location = gl.getAttribLocation(program, info.name);
-                setters[info.name] = b => {
-                    if (b.value) {
-                        gl.disableVertexAttribArray(location);
-                        gl['vertexAttrib'+b.value.length+'fv'](location, b.value);
-                    } else {
-                        gl.bindBuffer(gl.ARRAY_BUFFER, b.buffer);
-                        gl.enableVertexAttribArray(location);
-                        gl.vertexAttribPointer(location, b.size, b.type || gl.FLOAT, b.normalize || false, b.stride || 0, b.offset || 0);
-                    }
+                switch(info.type) {
+                    case gl.FLOAT:
+                    case gl.FLOAT_VEC2:
+                    case gl.FLOAT_VEC3:
+                    case gl.FLOAT_VEC4:
+                        setters[info.name] = b => {
+                            gl.bindBuffer(gl.ARRAY_BUFFER, b.buffer);
+                            gl.enableVertexAttribArray(location);
+                            gl.vertexAttribPointer(location, b.size, gl.FLOAT, b.normalize || false, b.stride || 0, b.offset || 0);
+                        }
+                        break;
                 }
             }
         }
-
+        let openTextureSlot = 0;
         {
             let i = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
             while(i--) {
@@ -238,7 +243,7 @@
                 const location = gl.getUniformLocation(program, info.name);
                 switch(info.type) {
                     case gl.FLOAT:
-                        setters[info.name] = v => gl.uniform1fv(location, v.length >= 0 ? v : [v]);
+                        setters[info.name] = v => gl.uniform1fv(location, v.length ? v : [v]);
                         break;
                     case gl.FLOAT_VEC2:
                         setters[info.name] = v => gl.uniform2fv(location, v);
@@ -251,7 +256,7 @@
                         break;
                     case gl.INT:
                     case gl.BOOL:
-                        setters[info.name] = v => gl.uniform1iv(location, v.length >= 0 ? v : [v]);
+                        setters[info.name] = v => gl.uniform1iv(location, v.length ? v : [v]);
                         break;
                     case gl.INT_VEC2:
                     case gl.BOOL_VEC2:
@@ -275,11 +280,17 @@
                         setters[info.name] = v => gl.uniformMatrix4fv(location, true, v);
                         break;
                     case gl.SAMPLER_2D:
-                    case gl.SAMPLER_CUBE:
-                        setters[info.name] = (v) => {
-                            gl.uniform1i(location, 0);
-                            gl.activeTexture(gl.TEXTURE0);
+                        setters[info.name] = v => {
+                            gl.uniform1i(location, openTextureSlot);
+                            gl.activeTexture(gl.TEXTURE0 + openTextureSlot++);
                             gl.bindTexture(gl.TEXTURE_2D, v);
+                        };
+                        break;
+                    case gl.SAMPLER_CUBE:
+                        setters[info.name] = v => {
+                            gl.uniform1i(location, 0);
+                            gl.bindTexture(gl.TEXTURE_2D, v);
+                            gl.activeTexture(gl.TEXTURE0);
                         };
                         break;
                 }
@@ -289,7 +300,9 @@
             program: program,
             set(values) {
                 gl.useProgram(program);
-                for(let i in values) if(setters[i]) setters[i](values[i]);
+                for(let key in values) 
+                    if(setters[key]) setters[key](values[key]);
+                openTextureSlot = 0;
             }
         }
     };
@@ -301,10 +314,10 @@
             out[i].buffer = gl.createBuffer();
             if(i === 'index') {
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, out[i].buffer);
-                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arrays[i].array), gl.STATIC_DRAW);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arrays[i].array), gl.DYNAMIC_DRAW);
             } else {
                 gl.bindBuffer(gl.ARRAY_BUFFER, out[i].buffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arrays[i].array), gl.STATIC_DRAW);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arrays[i].array), gl.DYNAMIC_DRAW);
             }
         }
         return out;
@@ -317,5 +330,139 @@
         console.time(name);
         while(scale--) callback(scale);
         console.timeEnd(name);
+    };
+}
+
+// speed utilities
+{
+    self.combine_arrays = (array0, array1) => {
+        const length0 = array0.length;
+        const length1 = array1.length;
+        array0.length = length0 + length1;
+        let iterator = length1;
+        while(iterator--) array0[length0 + iterator] = array1[iterator];
+        return array0;
+    };
+
+    self.MappedArray = {
+        create() {
+            let keys = {};
+            let keyorder = [];
+            let values = [];
+
+            let nextkey = 0;
+
+            return {
+                length: 0,
+
+                add(value) {
+                    let index = this.length++;
+                    
+                    keys[nextkey] = index;
+                    keyorder[index] = nextkey;
+
+                    values[index] = value;
+
+                    return nextkey++;
+                },
+                remove(key) {
+                    let index = keys[key];
+                    let value = values[index];
+
+                    keys[keyorder[this.length--]] = index;
+                    keys[key] = undefined;
+                    
+                    values[index] = values.pop();
+                    keyorder[index] = keyorder.pop();
+
+                    return value;
+                },
+
+                erase() {
+                    values = [];
+                    keys = {};
+                    keyorder = [];
+                    nextkey = 0;
+                    this.length = 0;
+                },
+            
+                get(key) { return values[keys[key]]; },
+                set(key, value) { values[keys[key]] = value; },
+
+                get_values() { return values; },
+                get_keys() { return keyorder; }
+            }
+        },
+    };
+    
+    self.MappedChunkedArray = {
+        create(subdata_size = 1, expected_elements = 100) {
+            let keys = {};
+            let keyorder = [];
+            let values = new Float32Array(subdata_size * expected_elements);
+            
+            let nextkey = 0;
+            let size = expected_elements;
+            let expand_step = 100;
+            
+            return {
+                length: 0,
+                
+                add(data) {
+                    let index = this.length++;
+                    
+                    if (this.length > size) {
+                        values = ((array0, array1) => {
+                            const length0 = array0.length;
+                            const length1 = array1.length;
+                            let iterator = length1;
+                            while(iterator--) array0[length0 + iterator] = array1[iterator];
+                            return array0;
+                        })(new Float32Array(values.length + subdata_size * expand_step), values);
+
+                        size += expand_step;
+                    }
+                    
+                    keys[nextkey] = index;
+                    keyorder[index] = nextkey;
+                    
+                    const offset = index * subdata_size;
+                    let iterator = subdata_size;
+                    while(iterator--) values[offset + iterator] = data[iterator];
+                    
+                    return nextkey++;
+                },
+                remove(key) {
+                    let index = keys[key];
+                    
+                    keys[keyorder[this.length--]] = index;
+                    keys[key] = undefined;
+                    
+                    const offset = index * subdata_size;
+                    let iterator = subdata_size;
+                    while(iterator--) values[offset + iterator] = values[values.length - subdata_size + iterator];
+                    
+                    keyorder[index] = keyorder.pop();
+                },
+                
+                erase() {
+                    values = [];
+                    keys = {};
+                    keyorder = [];
+                    nextkey = 0;
+                    this.length = 0;
+                },
+                
+                get(key) { return values.slice(keys[key] * subdata_size, subdata_size); },
+                set(key, data) {
+                    const offset = keys[key] * subdata_size;
+                    let iterator = subdata_size;
+                    while(iterator--) values[offset + iterator] = data[iterator];
+                },
+                
+                get_values() { return values; },
+                get_keys() { return keyorder; }
+            }
+        },
     };
 }

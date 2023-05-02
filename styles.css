@@ -79,7 +79,6 @@ body {
 }
 
 
-
 .menubar {
   user-select: none; /* supported by Chrome and Opera */
   -webkit-user-select: none; /* Safari */
@@ -109,7 +108,6 @@ body {
 }
 
 
-
 .project {
   width: auto;
   height: auto;
@@ -126,6 +124,7 @@ body {
   background-color: #2d1141;
   border-bottom: solid #5b2697;
 }
+
 
 .jimmy {
   width: auto;

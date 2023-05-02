@@ -1,5 +1,4 @@
-import "../../jiph/core.js"
-import Components from "../components.js"
+import Components from "../Components.js"
 
 const Player = {
     create() {
@@ -85,6 +84,12 @@ const Player = {
                     player.entityController.actions.place = bool;
                     return;
 
+                case APP.config.controls.hyper:
+                    player.entityController.actions.hyper = bool;
+                    return;
+                case APP.config.controls.brake:
+                    player.entityController.actions.brake = bool;
+                    return;
                 case APP.config.controls.zoom:
                     player.entityController.actions.zoom = bool;
                     return;
@@ -116,11 +121,19 @@ const Player = {
         return player;
     },
 
-    behavior({ playerBehavior, entityController, transform, camera }, dt) {
-        if(!(playerBehavior && entityController && transform && camera)) return 1;
+    behavior({ playerBehavior, entityController, transform, camera, rigidBody }, dt) {
+        if(!(playerBehavior && entityController && transform && camera && rigidBody)) return 1;
 
         // variable reset
         camera.fov = APP.config.settings.fov;
+        let speed = entityController.movementSpeed;
+        vec3.zero(entityController.movement);
+
+
+        if(entityController.actions.hyper)
+            speed *= 20;
+        if(entityController.actions.brake)
+            vec3.scale(rigidBody.linearVelocity, rigidBody.linearVelocity, 0.9);
 
         if(entityController.actions.forward)
             vec3.add(
@@ -154,16 +167,16 @@ const Player = {
                 entityController.movement,
                 entityController.movement,
                 transform.up);
+
         if(entityController.actions.zoom)
             camera.fov = APP.config.settings.fov / 5;
 
-        vec3.normalize(
-            entityController.movement,
-            entityController.movement);
+        let magnitude = vec3.length(entityController.movement);
+        if(!magnitude) return;
         vec3.scale(
             entityController.movement,
             entityController.movement,
-            entityController.movementSpeed);
+            speed / magnitude);
     }
 };
 

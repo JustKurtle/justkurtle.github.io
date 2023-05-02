@@ -1,18 +1,18 @@
 {
     "settings": {
         "mouseShove": false,
-        "repelCows": true,
+        "repelCows": false,
         "mouseSensitivity": 0.0012, 
         "fov": 1.5707963267948966
     },
     "controls": {
-        "front": "KeyW",
-        "left": "KeyA",
-        "back": "KeyS",
-        "right": "KeyD",
+        "forward":  "KeyW",
+        "left":     "KeyA",
+        "backward": "KeyS",
+        "right":    "KeyD",
     
         "dash": "ShiftLeft",
     
-        "fire": "Mouse0"
+        "fire": 0
     }
 }

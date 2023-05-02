@@ -1,11 +1,21 @@
 // todo
-function Animation(nodes = [], behavior = () => {}) {
-    let animation = {
-        scrub: 0, // how far into the animation you arebetween 0 and 1
+const Animation = {
+    create(duration, frames) {
+        let ouput = {
+            progress: 0, // how far into the animation you are between 0 and duration
+            duration: duration,
+            frames: frames,
+        };
+        return ouput;
+    },
 
-        run(dt = 1) {
-            behavior(dt);
-        }
-    };
-    return animation;
+    step(animation, stepSize) {
+        animation.progress = (animation.progress + stepSize) % animation.duration;
+    },
+    run(animation, stepSize) {
+        ;
+    }
 }
+
+Object.freeze(Animation);
+export default Animation;

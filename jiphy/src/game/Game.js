@@ -2,16 +2,77 @@ import AssetHandler from "./AssetHandler.js";
 import Geometry from "./Geometry.js";
 
 import Container from "./ecs/Container.js";
-import Components from "../game/Components.js";
-import Systems from "../game/Systems.js"
 
-import Scene from "./rendering/Scene.js";
 import RenderObject from "./rendering/RenderObject.js"
-
-import Player from "../game/entities/player.js"
-import Star from "../game/space/Star.js"
+import Scene from "./rendering/Scene.js";
 
 const Game = {
+    create(canvas) {
+        let gl = canvas.getContext("webgl2");
+        let config = {
+            "settings": {},
+            "controls": {}
+        };
+        let assetHandler = {
+            "models": {},
+            "shaders": {},
+            "textures": {}
+        };
+        let ecsContainer = {};
+        
+        // setup
+        {
+            fetch("config.json") 
+                .then(response => response.json())
+                .then(data => game.config = data);
+            
+            function resize(e) {
+                canvas.width = innerWidth;
+                canvas.height = innerHeight;
+                gl.viewport(0, 0, innerWidth, innerHeight);
+            };
+            resize(); // to resize the canvas when the window changes~
+            addEventListener("resize", resize, false);
+
+            if (!gl) return "webgl failed to load"; // return on failure to get context
+            gl.enable(gl.CULL_FACE);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            // gl.clearColor(0.0, 0.02, 0.1, 1.0);
+            gl.clearDepth(1.0);
+        }
+
+        return {
+            gl,
+
+            config,
+            assetHandler,
+
+            setAssetHandler(handler) {
+                assetHandler = handler;
+                return this;
+            },
+            setContainerECS(container) {
+                assetcontainer = container;
+                return this;
+            },
+
+            run() {
+                
+            }
+        };
+    },
+};
+Object.freeze(Game);
+export default Game;
+
+
+
+
+
+const Gae = {
     create(canvas) {
         let obj = {
             "canvas": canvas,
@@ -50,7 +111,7 @@ const Game = {
         game.canvas.onclick = game.canvas.requestPointerLock; // steal their mouse!
 
         {
-            game.ECS = Container.create();
+            game.container = Container.create();
 
             game.camera = Components.camera();
             game.scene = Scene.create();
@@ -61,7 +122,7 @@ const Game = {
                 "uLookAtMatrix": APP.camera.lookAtMatrix,
             });
 
-            Container.addEntity(game.ECS, Player.create());
+            game.container.addEntity(Player.create());
 
 
             let star_render_object_ID = game.scene.addObject(
@@ -78,15 +139,15 @@ const Game = {
                 let star = Star.create();
                 star.renderData.instanceID = game.scene.addInstance(star_render_object_ID, star.renderData.data);
                 
-                Container.addEntity(game.ECS, star);
+                game.container.addEntity(star);
             }
 
-            Container.addSystem(game.ECS,  Player.behavior);
-            Container.addSystem(game.ECS, Systems.entityController);
-            Container.addSystem(game.ECS, Systems.physicsUpdate);
-            Container.addSystem(game.ECS, Systems.cameraUpdate);
-            Container.addSystem(game.ECS, Systems.modelUpdate);
-            Container.addSystem(game.ECS, function render({ renderData }) {
+            game.container.addSystem( Player.behavior);
+            game.container.addSystem(Systems.entityController);
+            game.container.addSystem(Systems.physicsUpdate);
+            game.container.addSystem(Systems.cameraUpdate);
+            game.container.addSystem(Systems.modelUpdate);
+            game.container.addSystem(function instanceUpdate({ renderData }) {
                 if(!renderData) return -1;
                 game.scene.updateInstance(
                     renderData.objectID,
@@ -100,7 +161,7 @@ const Game = {
     update(game, dt) {
         game.gl.clear(game.gl.COLOR_BUFFER_BIT | game.gl.DEPTH_BUFFER_BIT);
 
-        Container.runSystems(game.ECS, dt);
+        Container.runSystems(dt);
         
         game.scene.render(game.gl);
     }
@@ -131,6 +192,3 @@ function setupWebgl(game) {
     // game.gl.clearColor(0.0, 0.02, 0.1, 1.0);
     game.gl.clearDepth(1.0);
 };
-
-Object.freeze(Game);
-export default Game;

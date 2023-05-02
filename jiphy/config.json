@@ -8,8 +8,8 @@
         "backward": "KeyS",
         "left":     "KeyA",
         "right":    "KeyD",
-        "up":       "KeyE",
-        "down":     "KeyQ",
+        "up":       "KaaeyE",
+        "down":     "KaaeyQ",
 
         "clockwise":     "KeyX",
         "anticlockwise": "KeyZ",
@@ -17,8 +17,6 @@
         "place": "Mouse0",
         "break": "Mouse2",
 
-        "hyper": "Space",
-        "brake": "ShiftLeft",
         "zoom": "KeyC"
     }
 }

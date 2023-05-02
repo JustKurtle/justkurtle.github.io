@@ -1,6 +1,6 @@
 // math things
 {
-    function check(sMin, sMax, oMin, oMax) {
+    function axisCheck(sMin, sMax, oMin, oMax) {
         const O1 = sMin <= oMax && sMin >= oMin,
               O2 = oMin <= sMax && oMin >= sMin;
         if(O1 || O2) {
@@ -12,19 +12,16 @@
         }
         return 0;
     }
+    function lineCheck(lineMin, lineMax, ) {
+        let start = 0 * slope, 
+            stop = (0 + 5) * slope;
     
+        if(1 <= start && 1 + 5 >= start) return;
+    }
     // returns minimum distance to correct the overlap
     self.rectOverlap = (aPos, aSize, bPos, bSize) => {
-        const x = check(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
-        const y = check(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
-    
-        if(x * x < y * y) 
-            return [x, 0];
-        return [0, y];
-    };
-    self.rectContain = (aPos, aSize, bPos, bSize) => {
-        const x = check(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
-        const y = check(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
+        const x = axisCheck(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
+        const y = axisCheck(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
     
         if(x * x < y * y) 
             return [x, 0];
@@ -39,6 +36,15 @@
             aPos[1] + aSize[1] <= bPos[1]
         );
     };
+    // returns minimum distance to contain rectangle b inside rectangle a
+    self.rectContain = (aPos, aSize, bPos, bSize) => {
+        const x = axisCheck(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
+        const y = axisCheck(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
+    
+        if(x * x < y * y) 
+            return [x, 0];
+        return [0, y];
+    };
     // returns true if rectangle b is entirely contained within rectangle a 
     self.rectContains = (aPos, aSize, bPos, bSize) => {
         return !(
@@ -51,55 +57,56 @@
     
     self.lineRectOverlap = (linePos, lineVector, rectPos, rectSize) => {
         rectPos = [rectPos[0] - linePos[0], rectPos[1] - linePos[1]]; // Make rectPos relative to linePos
-        lineVector = [lineVector[0] || 1e-50, lineVector[1] || 1e-50]; // Make sure no exact 0s
+        lineVector = [lineVector[0] || 1e-50, lineVector[1] || 1e-50]; // Make sure no exact 0s --- probably needs to be changed
         const slope = lineVector[1] / lineVector[0];
         let out = 1;
     
-        let y1 = rectPos[0] * slope, 
-            y2 = (rectPos[0] + rectSize[0]) * slope, 
-            x1 = rectPos[1] / slope, 
-            x2 = (rectPos[1] + rectSize[1]) / slope;
+        let yStart = rectPos[0] * slope, 
+            yStop = (rectPos[0] + rectSize[0]) * slope, 
+            xStart = rectPos[1] / slope, 
+            xStop = (rectPos[1] + rectSize[1]) / slope;
     
-        if(rectPos[1] <= y1 && rectPos[1] + rectSize[1] >= y1)
-            out = Math.min(out, y1 / lineVector[1]);
-        if(rectPos[1] <= y2 && rectPos[1] + rectSize[1] >= y2)
-            out = Math.min(out, y2 / lineVector[1]);
-        if(rectPos[0] <= x1 && rectPos[0] + rectSize[0] >= x1)
-            out = Math.min(out, x1 / lineVector[0]);
-        if(rectPos[0] <= x2 && rectPos[0] + rectSize[0] >= x2)
-            out = Math.min(out, x2 / lineVector[0]);
+        if(rectPos[1] <= yStart && rectPos[1] + rectSize[1] >= yStart)
+            out = Math.min(out, yStart / lineVector[1]);
+        if(rectPos[1] <= yStop && rectPos[1] + rectSize[1] >= yStop)
+            out = Math.min(out, yStop / lineVector[1]);
+        if(rectPos[0] <= xStart && rectPos[0] + rectSize[0] >= xStart)
+            out = Math.min(out, xStart / lineVector[0]);
+        if(rectPos[0] <= xStop && rectPos[0] + rectSize[0] >= xStop)
+            out = Math.min(out, xStop / lineVector[0]);
     
         if (out >= 0) 
             return out;
         return 1;
     };
+
     self.lineRectOverlaps = (linePos, lineVector, rectPos, rectSize) => {
         rectPos = [rectPos[0] - linePos[0], rectPos[1] - linePos[1]]; // Make rectPos relative to linePos
-        lineVector = [lineVector[0] || 1e-50, lineVector[1] || 1e-50]; // Make sure no exact 0s
+        lineVector = [lineVector[0] || 1e-50, lineVector[1] || 1e-50]; // Make sure no exact 0s --- probably needs to be changed
         const slope = lineVector[1] / lineVector[0];
         let out = 1;
     
-        let y1 = rectPos[0] * slope, 
-            y2 = (rectPos[0] + rectSize[0]) * slope, 
-            x1 = rectPos[1] / slope, 
-            x2 = (rectPos[1] + rectSize[1]) / slope;
+        let yStart = rectPos[0] * slope, 
+            yStop = (rectPos[0] + rectSize[0]) * slope, 
+            xStart = rectPos[1] / slope, 
+            xStop = (rectPos[1] + rectSize[1]) / slope;
     
-        if(rectPos[1] <= y1 && rectPos[1] + rectSize[1] >= y1)
-            out = Math.min(out, y1 / lineVector[1]);
-        if(rectPos[1] <= y2 && rectPos[1] + rectSize[1] >= y2)
-            out = Math.min(out, y2 / lineVector[1]);
-        if(rectPos[0] <= x1 && rectPos[0] + rectSize[0] >= x1)
-            out = Math.min(out, x1 / lineVector[0]);
-        if(rectPos[0] <= x2 && rectPos[0] + rectSize[0] >= x2)
-            out = Math.min(out, x2 / lineVector[0]);
+        if(rectPos[1] <= yStart && rectPos[1] + rectSize[1] >= yStart)
+            out = Math.min(out, yStart / lineVector[1]);
+        if(rectPos[1] <= yStop && rectPos[1] + rectSize[1] >= yStop)
+            out = Math.min(out, yStop / lineVector[1]);
+        if(rectPos[0] <= xStart && rectPos[0] + rectSize[0] >= xStart)
+            out = Math.min(out, xStart / lineVector[0]);
+        if(rectPos[0] <= xStop && rectPos[0] + rectSize[0] >= xStop)
+            out = Math.min(out, xStop / lineVector[0]);
     
         return !(out < 0 || out > 1);
     };
     // returns minimum distance to correct the overlap
     self.boxOverlap = (aPos, aSize, bPos, bSize) => {
-      const x = check(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
-      const y = check(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
-      const z = check(aPos[2], aPos[2] + aSize[2], bPos[2], bPos[2] + bSize[2]);
+      const x = axisCheck(aPos[0], aPos[0] + aSize[0], bPos[0], bPos[0] + bSize[0]);
+      const y = axisCheck(aPos[1], aPos[1] + aSize[1], bPos[1], bPos[1] + bSize[1]);
+      const z = axisCheck(aPos[2], aPos[2] + aSize[2], bPos[2], bPos[2] + bSize[2]);
     
       if(Math.min(x * x, y * y, z * z) === x * x)
           return [x, 0, 0];
@@ -129,6 +136,7 @@
           aPos[2] + aSize[2] <= bPos[2] + bSize[2]
       );
     }
+    
     self.rayBoxOverlap = (rayPos, rayVector, boxPos, boxSize) => {
         boxPos = [boxPos[0] - rayPos[0], boxPos[1] - rayPos[1], boxPos[2] - rayPos[2]]; // Make boxPos relative to rayPos
         rayVector = [rayVector[0] || 1e-50, rayVector[1] || 1e-50, rayVector[2] || 1e-50]; // Make sure no exact 0s
@@ -142,8 +150,8 @@
             y2 = (boxPos[0] + boxSize[0]) * slopeYX, 
             x1 = boxPos[1] / slopeYX,  
             x2 = (boxPos[1] + boxSize[1]) / slopeYX;
-    
-            
+
+
         if(boxPos[0] <= z1 && boxPos[0] + boxSize[0] >= z1)
             out = Math.min(out, z1 / rayVector[0]);
         if(boxPos[0] <= z2 && boxPos[0] + boxSize[0] >= z2)
@@ -161,6 +169,7 @@
             return out;
         return 1;
     };
+
     self.rayBoxOverlaps = (rayPos, rayVector, boxPos, boxSize) => {
         boxPos = [boxPos[0] - rayPos[0], boxPos[1] - rayPos[1], boxPos[2] - rayPos[2]]; // Make boxPos relative to rayPos
         rayVector = [rayVector[0] || 1e-50, rayVector[1] || 1e-50, rayVector[2] || 1e-50]; // Make sure no exact 0s
@@ -347,47 +356,26 @@
     };
 
     // todo
-    self.jScene = class Scene {
-        constructor(gl) {
-            // gl.enable(gl.CULL_FACE);
-
-            gl.enable(gl.DEPTH_TEST);
-            gl.depthFunc(gl.LEQUAL);
+    self.jBatchRenderer = {        
+        init() {
             
-            gl.enable(gl.BLEND);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        },
+
+        beginBatch() {
+
+        },
+
+        endBatch() {
+
+        },
+
+        flush() {
+
+        },
+
+        draw() {
             
-            gl.clearColor(0.0, 0.2, 0.5, 1.0);
-            gl.clearDepth(1.0);
-
-            this.enable = gl.enable;
-            this.depthFunc = gl.depthFunc;
-            this.blendFunc = gl.blendFunc;
-            this.clearColor = gl.clearColor;
-            this.clearDepth = gl.clearDepth;
-        }
-
-        clear(gl) {
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        }
-
-        draw(gl, rMat, shader) {
-            // gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-            // gl.bindTexture(gl.TEXTURE_2D, this.frametexture);
-            
-            shader.set(rMat);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rMat.index.buffer);
-            gl.drawElements(gl.TRIANGLES, rMat.index.length, gl.UNSIGNED_SHORT, 0);
         }
     };
-
-    // todo
-    self.jCamera = {
-        create() {
-            return {
-                "projectionMatrix": [],
-                "lookAtMatrix": [],
-            };
-        }
-    };
+    Object.freeze(self.jBatchRenderer);
 }

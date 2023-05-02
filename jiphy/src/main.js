@@ -1,91 +1,103 @@
-import "./jiph/core.js"
-import "./jiph/math.js"
-import "./jiph/tree.js"
+import "./jiph/core.js";
+import "../deps/gl-matrix.js";
+Object.assign(self, glMatrix);
 
-import "./game/chunk.js"
-import "./game/player.js"
+import "./game/entities/level.js";
+import "./game/entities/Player.js";
 
-(function() {
-  const canvas = document.querySelector("#canvas");
-  self.gl = canvas.getContext("webgl2");
-  if (!gl) return;
-  (window.onresize = () => {
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
-    gl.viewport(0, 0, innerWidth, innerHeight);
-  })();
-  
-  canvas.onclick = canvas.requestPointerLock;
+import Game from "./game/game.js"
 
-  self.shader = jShader(gl, [`
-    attribute vec4 aVertexPosition;
-    attribute vec2 aTextureCoord;
+import Container from "./jiph/container.js";
+import Components from "./game/Components.js";
+import Systems from "./game/Systems.js";
 
-    uniform mat4 uModelViewMatrix;
+self.APP = {};
 
-    uniform mat4 uProjectionMatrix;
-    uniform mat4 uLookAtMatrix;
+addEventListener("load", async function() {
+    // get the canvas
+    let canvas = document.querySelector("#canvas");
+    // pass the canvas
+    APP = Game.create(canvas);
+    if (!APP.gl) throw "Failed to load webgl2"; // return on failure to get context
 
-    varying highp vec2 vTextureCoord;
+    canvas.width = 600;
+    canvas.height = 400;
+    // self.addEventListener("resize", APP.resizeCallback, false);
+    // APP.resizeCallback(); // invoke and set default game resize callback 
 
-    void main(void) {
-      gl_Position = aVertexPosition * (uModelViewMatrix * uLookAtMatrix * uProjectionMatrix);
-      vTextureCoord = aTextureCoord;
-    }`,`
-    varying highp vec2 vTextureCoord;
+    APP.canvas.onclick = APP.canvas.requestPointerLock;
 
-    uniform sampler2D uSampler;
-    uniform highp float uGlow;
-    uniform highp vec3 uLight;
+    {
+        // load settings 
+        await fetch("config.json") 
+            .then(response => response.json())
+            .then(data => {
+                APP.config = data;
+            });
+        // load models 
+        // await fetch("assets/models/level1.json")
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         APP.assets.models.level1 = data;
+        //     });
+        // load shaders
+        await fetch("assets/shaders/matte.hlsl")
+            .then(response => response.text())
+            .then(data => APP.assets.shaders.matte = jShader(APP.gl, data
+                .replaceAll("#VERTEX", "")
+                .split("#FRAGMENT")) );
 
-    void main(void) {
-      gl_FragColor = texture2D(uSampler, vTextureCoord) * uGlow;
+        // load textures
+        APP.assets.textures.benjamonkey_frank = jTexture(APP.gl, 'assets/textures/benjamonkey_frank.png');
+        APP.assets.textures.ground = jTexture(APP.gl, 'assets/textures/ground.png');
+        APP.assets.textures.guy = jTexture(APP.gl, 'assets/textures/guy.png');
+        APP.assets.textures.station = jTexture(APP.gl, 'assets/textures/station.png');
     }
-  `]);
-  let texture = jTexture(gl, './assets/grass.png');
-  let entities = [new Player(new Vec3(8,64,8))];
-  let chunks = [new Chunk(self.shader)];
 
-  let camera = new jCamera();
-  camera.lookAt = new Mat4();
-  {
-    let i = 256 * 63 + 16;
-    while(i--) {
-      chunks[0].set([i % 16, i / 256 | 0, (i / 16 | 0) % 16], 1);
+    APP.camera = Components.camera();
+
+    APP.scene = Container.create();
+
+    {
+        let i = 10000;
+        while(i--) {
+            let entity = {
+                "transform": Components.transform(),
+                "rigidBody": Components.rigidBody(),
+                "shaderMaterial": {},
+            };
+            Player.init(entity, APP);
+            Container.addEntity(APP.scene, entity);
+        }
+
+        let entity = Player.create();
+        Player.init(entity, APP);
+        Container.addEntity(APP.scene, entity);
     }
-    chunks[0].update();
-  }
 
-  let scene = new jScene(gl);
+    Container.addSystem(APP.scene, Player.playerControllerSystem);
+    Container.addSystem(APP.scene, Systems.physicsUpdate);
+    Container.addSystem(APP.scene, Systems.renderUpdate);
 
-  self.then = 0;
-  function main(now) {
-    requestAnimationFrame(main);
-    const dt = (now - then) * 0.001;
-    then = now;
-    let fov = 90;
-    
-    for(let [k, v] of keys) {
-      switch(k) {
-        case "KeyC":
-          fov = 20;
-          break;
-      }
+    {
+        let then = 0;
+        function main(now) {
+            const dt = (now - then) * 0.001; // convert to time betweem
+            then = now;
+
+            // reset the orthographic projection in case the screen is resized
+            mat4.ortho(
+                APP.camera.projectionMatrix, 
+                -1, 1, 
+                -innerHeight / innerWidth, innerHeight / innerWidth, 
+                0.1, Number.MAX_SAFE_INTEGER);
+
+            APP.gl.clear(APP.gl.COLOR_BUFFER_BIT | APP.gl.DEPTH_BUFFER_BIT);
+
+            Container.runSystems(APP.scene, dt);
+
+            requestAnimationFrame(main);
+        }
+        requestAnimationFrame(main);
     }
-    camera.projection = new Mat4().perspective(0.1, 100000, fov, innerWidth / innerHeight);
-
-    scene.clear(gl);
-    
-    shader.set({
-      uSampler: texture,
-      uLookAtMatrix: camera.lookAt,
-      uProjectionMatrix: camera.projection
-    });
-
-    for(let e of entities) e.update(dt, { chunks });
-
-    for(let e of entities) e.draw(gl, { camera });
-    for(let chunk of chunks) chunk.draw(gl);
-  }
-  requestAnimationFrame(main);
-})();
+}, false);
