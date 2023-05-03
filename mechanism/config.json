@@ -1,22 +1,6 @@
 {
     "settings": {
-        "mouseSensitivity": 0.0012,
-        "fov": 1.5707963267948966
     },
     "controls": {
-        "forward":  "KeyW",
-        "backward": "KeyS",
-        "left":     "KeyA",
-        "right":    "KeyD",
-        "up":       "KeyE",
-        "down":     "KeyQ",
-
-        "clockwise":     "KeyX",
-        "anticlockwise": "KeyZ",
-    
-        "place": "Mouse0",
-        "break": "Mouse2",
-
-        "zoom": "KeyC"
     }
 }
