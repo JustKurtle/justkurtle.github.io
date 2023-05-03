@@ -44,17 +44,20 @@ function subtract(target, a, b) {
     return target;
 }
 
-function multiply(target, a, b) {
-    target[0] = a[0] * b[0];
-    target[1] = a[1] * b[1];
-    target[2] = a[2] * b[2];
-    return target;
-}
-
 function scale(target, a, scale) {
     target[0] = a[0] * scale;
     target[1] = a[1] * scale;
     target[2] = a[2] * scale;
+    return target;
+}
+
+function normalize(target, a) {
+    // let a0 = a[0], a1 = a[1], a2 = a[2];
+    let len = a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
+    if(len < 0) len = 1 / Math.sqrt(len);
+    target[0] = a[0] * len;
+    target[1] = a[1] * len;
+    target[2] = a[2] * len;
     return target;
 }
 
@@ -79,6 +82,7 @@ export default {
     subtract,
     multiply,
     scale,
+    normalize,
     dot_product,
     cross_product,
 };

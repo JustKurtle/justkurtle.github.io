@@ -1,11 +1,13 @@
-async function combine_into(array1, array2) {
+function combine_into_first(array1, array2) {
+    let len1 = array1.length;
     let iter = array2.length;
-    while(iter--) array1[iter + array1.length] = array2[iter];
+    array1.length += iter;
+    while(iter--) array1[iter + len1] = array2[iter];
 }
-async function combine_into_pre_extend(array1, array2) {
-    array1.length += array2.length;
+function combine_into_first_noextend(array1, array2) {
+    let len1 = array1.length;
     let iter = array2.length;
-    while(iter--) array1[iter + array1.length] = array2[iter];
+    while(iter--) array1[iter + len1] = array2[iter];
 }
 
 self.speed_test = (label, fn, iter = 10000000) => {
@@ -15,7 +17,7 @@ self.speed_test = (label, fn, iter = 10000000) => {
 };
 
 export default {
-    combine_into,
-    combine_into_pre_extend,
+    combine_into_first,
+    combine_into_first_noextend,
 };
 
