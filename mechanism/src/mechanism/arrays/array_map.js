@@ -14,7 +14,7 @@ function create() {
     };
 }
 
-function add(value) {
+function add(target, value) {
     let index = target.length++;
     
     target._keys[target._additions] = index;
@@ -25,7 +25,7 @@ function add(value) {
     return target._additions++;
 }
 
-function remove(key) {
+function remove(target, key) {
     let index = target._keys[key];
     let value = target._values[index];
 
@@ -38,7 +38,7 @@ function remove(key) {
     return value;
 }
 
-function erase(target) {
+function reset(target) {
     target._values = [];
     target._keys = {};
     target._keyorder = [];
@@ -58,7 +58,7 @@ export default {
     create,
     add,
     remove,
-    erase,
+    reset,
     get,
     set,
 };

@@ -1,10 +1,17 @@
 import array_tools from "./arrays/array_tools.js";
+import array_map from "./arrays/array_map.js";
+import subarray_map from "./arrays/subarray_map.js";
+
 import AssetManager from "./assets/asset_manager.js";
+import Geometry from "./assets/geometry.js";
+
 import Matrix from "./math/matrix44.js";
 import Vector from "./math/vector3.js";
 
-function mechanism_load() {
+async function mechanism_load() {
     let assetManager = AssetManager.create();
+
+    await AssetManager.loadFromFiles(assetManager, []);
     
     {
         let a = Matrix.create();

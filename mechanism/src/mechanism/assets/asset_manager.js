@@ -7,7 +7,9 @@ async function create() {
 }
 
 async function loadFromFiles(target, paths) {
+    Object.keys(paths);
     
+    target._assets
 }
 
 async function loadFromObjects(target, objects) {

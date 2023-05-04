@@ -1,16 +1,12 @@
 function create() {
-    let assets = ArrayMap();
+    let assets = ArrayMap.create();
     
     return {
 
     };
 };
 
-export default function create() {
-    let assets = ArrayMap();
-    
-    return {
-
-    };
+export default {
+    create,
 };
 

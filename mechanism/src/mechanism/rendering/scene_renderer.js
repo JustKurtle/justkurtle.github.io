@@ -1,12 +1,16 @@
-export default async function create_SceneObject() {
-    let properties = {};
+function create() {
+    
     
     return {
-        push(scene) {
-            
-        },
-        pull(scene) {
-            
-        },
+
     };
+}
+
+function render(target) {
+    
+    return target
+}
+
+export default {
+    create,
 };
