@@ -13,7 +13,9 @@ async function loadFromFiles(target, paths) {
 }
 
 async function loadFromObjects(target, objects) {
+    Object.keys(objects);
     
+    target._assets
 }
 
 export default {

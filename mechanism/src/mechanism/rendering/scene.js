@@ -1,10 +1,12 @@
 function create() {
-    let assets = ArrayMap.create();
+    let objects = ArrayMap.create();
     
     return {
-
+        _objects,
     };
 };
+
+add
 
 export default {
     create,
