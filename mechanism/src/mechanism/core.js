@@ -11,8 +11,15 @@ import Vector from "./math/vector3.js";
 async function mechanism_load() {
     let assetManager = AssetManager.create();
 
-    await AssetManager.loadFromFiles(assetManager, []);
-    
+    await AssetManager.loadFromFiles(assetManager, [
+        "star.png",
+        "star.hlsl",
+    ]);
+
+    await AssetManager.loadFromFiles(assetManager, {
+        "star.model": Geometry.createQuadSphere(1),
+    });
+    console.log((sideWidth + 1) ** 2 * 6);
 
     let iter = 1000000;
     {

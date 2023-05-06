@@ -2,7 +2,7 @@ function create() {
     return new Float32Array(3, 0);
 }
 
-function from_values(x, y, z) {
+function fromValues(x, y, z) {
     let out = new Float32Array(3, x);
     out[1] = y;
     out[2] = z;
@@ -61,11 +61,11 @@ function normalize(target, a) {
     return target;
 }
 
-function dot_product(a, b) {
+function dotProduct(a, b) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-function cross_product(target, a, b) {
+function crossProduct(target, a, b) {
     target[0] = a[1] * b[2] - a[2] * b[1];
     target[1] = a[2] * b[0] - a[0] * b[2];
     target[2] = a[0] * b[1] - a[1] * b[0];
@@ -74,7 +74,7 @@ function cross_product(target, a, b) {
 
 export default {
     create,
-    from_values,
+    fromValues,
     set,
     multiply,
     divide,
@@ -83,6 +83,6 @@ export default {
     multiply,
     scale,
     normalize,
-    dot_product,
-    cross_product,
+    dotProduct,
+    crossProduct,
 };

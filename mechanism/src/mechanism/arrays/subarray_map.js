@@ -18,7 +18,7 @@ function create(step_size, sub_size) {
     };
 }
 
-function from_initial_size(size, step_size, sub_size) {
+function fromInitialSize(size, step_size, sub_size) {
     let _data = new Float32Array(size * sub_size);
     let _keys = {};
     let _keyorder = [];
@@ -91,7 +91,7 @@ function set(target, key, data) {
 
 export default {
     create,
-    from_initial_size,
+    fromInitialSize,
     add,
     remove,
     reset,
