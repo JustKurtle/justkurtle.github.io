@@ -1,24 +1,17 @@
-function combineInto(array1, array2) {
-    let len1 = array1.length;
-    let iter = array2.length;
-    array1.length += iter;
-    while(iter--) array1[iter + len1] = array2[iter];
+function extend(target, source) {
+    let len1 = target.length;
+    let iter = source.length;
+    target.length += iter;
+    while(iter--) target[iter + len1] = source[iter];
 }
 
-function combineIntoNoextend(array1, array2) {
-    let len1 = array1.length;
-    let iter = array2.length;
-    while(iter--) array1[iter + len1] = array2[iter];
-}
-
-self.speed_test = (label, fn, iter = 10000000) => {
-    console.time(label);
-    while(iter--) fn(iter);
-    console.timeEnd(label);
-};
+function replaceFrom(target, startIndex, source) {
+    let iter = source.length;
+    while(iter--) target[iter + startIndex] = source[iter];
+} 
 
 export default {
-    combineInto,
-    combineIntoNoextend,
+    extend,
+    replaceFrom,
 };
 
