@@ -46,7 +46,6 @@ function add(target, data) {
         let i = target._data.length;
         while(i--) a[i] = target._data[i];
         target._data = a;
-        console.log("biggered");
     }
 
     let i = target._sub_size;
