@@ -2,11 +2,9 @@ function create() {
     let objects = ArrayMap.create();
     
     return {
-        _objects,
+        objects,
     };
 };
-
-add
 
 export default {
     create,

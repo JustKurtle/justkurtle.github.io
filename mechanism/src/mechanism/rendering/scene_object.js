@@ -1,5 +1,8 @@
-function create() {
-    return {};
+function create(properties) {
+    return {
+
+        
+    };
 }
 
 function pushInstance(target, instance) {
