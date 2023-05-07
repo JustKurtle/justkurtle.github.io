@@ -1,21 +1,37 @@
-async function create() {
-    let _assets = {};
+function create() {
+    const assets = {};
 
     return {
-        _assets
+        assets
     };
 }
 
 async function loadFromFiles(target, paths) {
-    Object.keys(paths);
-    
-    target._assets
+    let i = paths.length;
+    while(i--) {
+        let [title, extension] = paths[i].split(".");
+
+        switch(extension) {
+            case "png":
+            case "jpeg":
+                let img = new Image();
+                img.path = paths[i];
+                target.assets[title + "_image"] = img;
+                break;
+        }
+    }
 }
 
 async function loadFromObjects(target, objects) {
-    Object.keys(objects);
+    let assetsNames = Object.keys(objects);
     
-    target._assets
+    let i = assetsNames.length;
+    while(i--) {
+        let [title, type] = assetsNames[i].replace(".", "_");
+        
+        if(!target.assets[title]) target.assets[title] = {};
+        target.assets[title][type] = objects[assetsNames[i]];
+    }
 }
 
 export default {
