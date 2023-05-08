@@ -14,9 +14,8 @@ addEventListener("load", async () => {
     let sceneRenderer = Mechanism.SceneRenderer.create(gl);
 
 
-
     let iter = 1000000;
-
+    
     // Matrix44 tests
     {
         let a = Mechanism.Matrix44.create();
@@ -24,7 +23,7 @@ addEventListener("load", async () => {
 
         speed_test("matrix_multiply", i => Mechanism.Matrix44.multiply(a, a, b), iter);
     }
-
+    
     // Vector3 tests
     {
         let a = Mechanism.Vector3.fromValues(1, 0, 0);
