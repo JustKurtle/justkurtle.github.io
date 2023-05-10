@@ -1,53 +1,4 @@
-async function create(gl) {
-    let vShader = await fetch("src/mechanism/rendering/_shader.vs.hlsl")
-        .then(response => response.text());
-    let fShader = await fetch("src/mechanism/rendering/_shader.fs.hlsl")
-        .then(response => response.text());
-
-    let shaders = {
-        world: loadShader(gl, [vShader, fShader]),
-        // post: loadShader(gl, [vShader, fShader]),
-    };
-    if(shaders["world"].error)
-        console.error("shaders[\"world\"]: " + shaders["world"].error);
-        
-    // if(shaders["post"].error)
-    //     console.error("shaders[\"post\"]:" + shaders["post"].error);
-
-    const fb = gl.createFramebuffer();
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        ext.COLOR_ATTACHMENT0_WEBGL,
-        gl.TEXTURE_2D,
-        tx[0],
-        0);
-    gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        ext.COLOR_ATTACHMENT1_WEBGL,
-        gl.TEXTURE_2D,
-        tx[1],
-        0);
-    gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        ext.COLOR_ATTACHMENT2_WEBGL,
-        gl.TEXTURE_2D,
-        tx[2],
-        0);
-    gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        ext.COLOR_ATTACHMENT3_WEBGL,
-        gl.TEXTURE_2D,
-        tx[3],
-        0);
-
-    return {
-        shaders
-    };
-}
-
-function loadShader(gl, source) {
+function buildShader(gl, source) {
     const vShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vShader, source[0]);
     gl.compileShader(vShader);
@@ -117,10 +68,10 @@ function loadShader(gl, source) {
                 setters[info.name] = b => {
                     gl.bindBuffer(gl.ARRAY_BUFFER, b.buffer);
                     gl.enableVertexAttribArray(location);
-                    gl.vertexAttribPointer(location + 0, 4, gl.FLOAT, false, b.stride, b.offset);
-                    gl.vertexAttribPointer(location + 1, 4, gl.FLOAT, false, b.stride, b.offset);
-                    gl.vertexAttribPointer(location + 2, 4, gl.FLOAT, false, b.stride, b.offset);
-                    gl.vertexAttribPointer(location + 3, 4, gl.FLOAT, false, b.stride, b.offset);
+                    gl.vertexAttribPointer(location, 4, gl.FLOAT, false, b.stride, b.offset);
+                    gl.vertexAttribPointer(location + 1, 4, gl.FLOAT, false, b.stride, b.offset + 16);
+                    gl.vertexAttribPointer(location + 2, 4, gl.FLOAT, false, b.stride, b.offset + 32);
+                    gl.vertexAttribPointer(location + 3, 4, gl.FLOAT, false, b.stride, b.offset + 48);
                     divisor(b.divisor, 0);
                     divisor(b.divisor, 1);
                     divisor(b.divisor, 2);
@@ -193,12 +144,6 @@ function loadShader(gl, source) {
     };
 }
 
-function render(target, scene) {
-    target.scene;
-
-    return target;
-}
-
 export default {
-    create,
+    buildShader
 };

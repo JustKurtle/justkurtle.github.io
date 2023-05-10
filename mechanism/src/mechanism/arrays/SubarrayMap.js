@@ -88,6 +88,19 @@ function set(target, key, data) {
     while(i--) target._data[index + i] = data[i];
 }
 
+function test(iter) {
+    let a = fromInitialSize(iter, 1000, 16);
+
+    let b = new Float32Array(16, 0);
+    let c = new Float32Array(16, 0);
+
+    console.log("SubarrayMap");
+    speed_test("    add()", i => add(a, b), iter);
+    speed_test("    get()", i => get(a, i), iter);
+    speed_test("    set()", i => set(a, i, c), iter);
+    speed_test("    pop()", i => remove(a, i), iter);
+}
+
 export default {
     create,
     fromInitialSize,
@@ -96,4 +109,6 @@ export default {
     reset,
     get,
     set,
+
+    test
 };

@@ -1,3 +1,9 @@
+self.speed_test = (label, callback, iter = 10000000) => {
+    console.time(label);
+    while(iter--) callback(iter);
+    console.timeEnd(label);
+};
+
 function extend(target, source) {
     let len1 = target.length;
     let iter = source.length;

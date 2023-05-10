@@ -1,20 +1,16 @@
-import ArrayTools from "./arrays/array_tools.js";
-import ArrayMap from "./arrays/array_map.js";
-import SubArrayMap from "./arrays/subarray_map.js";
+import ArrayTools from "./arrays/ArrayTools.js";
+import ArrayMap from "./arrays/ArrayMap.js";
+import SubArrayMap from "./arrays/SubarrayMap.js";
 
-import AssetManager from "./assets/asset_manager.js";
-import Geometry from "./assets/geometry.js";
+import AssetManager from "./assets/AssetManager.js";
+import Geometry from "./assets/Geometry.js";
 
-import Matrix44 from "./math/matrix44.js";
-import Vector3 from "./math/vector3.js";
+import Matrix44 from "./math/Matrix44.js";
+import Vector3 from "./math/Vector3.js";
 
-import SceneRenderer from "./rendering/scene_renderer.js";
+import SceneRenderer from "./rendering/SceneRenderer.js";
 
-self.speed_test = (label, callback, iter = 10000000) => {
-    console.time(label);
-    while(iter--) callback(iter);
-    console.timeEnd(label);
-};
+import EntityManager from "./gaming/EntityManager.js";
 
 self.Mechanism = {
     ArrayTools,
@@ -25,4 +21,5 @@ self.Mechanism = {
     Matrix44,
     Vector3,
     SceneRenderer,
+    EntityManager,
 };

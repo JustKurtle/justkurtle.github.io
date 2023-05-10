@@ -1,15 +1,10 @@
-function create() {
-    let properties = {}; 
+function createMaterial() {
+    let properties = {};
     
     return {
         properties,
-
+        
     };
-}
-
-function setProperty(target, property) {
-    target.properties[property.name];
-    return target;
 }
 
 export default {

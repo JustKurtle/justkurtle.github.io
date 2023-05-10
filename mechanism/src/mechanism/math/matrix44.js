@@ -45,9 +45,19 @@ function multiply(target, a, b) {
     return target;
 }
 
+function test(iter) {
+    let a = create();
+    let b = create();
+
+    console.log("Matrix44");
+    speed_test("    multiply()", i => multiply(a, a, b), iter);
+}
+
 export default {
     create,
     copy,
     set,
     multiply,
+
+    test
 };

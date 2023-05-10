@@ -3,7 +3,7 @@ function create() {
     let _keys = {};
     let _keyorder = [];
     let _additions = 0;
-    let length; 0;
+    let length = 0;
 
     return {
         _values,
