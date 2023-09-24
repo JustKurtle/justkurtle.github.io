@@ -16,15 +16,15 @@ function replaceFrom(target, startIndex, source) {
     while(iter--) target[iter + startIndex] = source[iter];
 }
 
-function binarySearch(array, value) {
+function binarySearch(array, value, accessor = v => v) {    
     let lower = -1, upper = array.length;
     let index = array.length >> 1;
 
     while(lower < index && index < upper) {
-        if(array[index] > value) {
+        if(accessor(array[index]) > accessor(value)) {
             upper = index;
         } else
-        if(array[index] < value) {
+        if(accessor(array[index]) < accessor(value)) {
             lower = index;
         } else {
             return index;
@@ -36,15 +36,15 @@ function binarySearch(array, value) {
     return null;
 }
 
-function binaryInsert(array, value) {
+function binaryInsert(array, value, accessor = v => v) {
     let lower = -1, upper = array.length;
     let index = array.length >> 1;
 
     while(lower < index && index < upper) {
-        if(array[index] > value) {
+        if(accessor(array[index]) > accessor(value)) {
             upper = index;
         } else
-        if(array[index] < value) {
+        if(accessor(array[index]) < accessor(value)) {
             lower = index;
         } else {
             break;
@@ -57,7 +57,7 @@ function binaryInsert(array, value) {
     return index;
 }
 
-export default {
+export {
     extend,
     replaceFrom,
     binarySearch,

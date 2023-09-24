@@ -13,9 +13,7 @@ const Components = {
     rigidBody() {
         return {
             "angularVelocity": vec3.create(),
-            "angularMomentum": vec3.create(),
             "linearVelocity": vec3.create(),
-            "linearMomentum": vec3.create(),
         };
     },
     entityController() {
@@ -31,8 +29,8 @@ const Components = {
             "projectionMatrix": mat4.create(),
             "lookAtMatrix": mat4.create(),
 
-            "fov": APP.config.settings.fov,
-            "aspect": innerWidth/innerHeight,
+            "fov": 1.49, //app.config.settings.fov,
+            "aspect": innerWidth / innerHeight,
             "near": 0.001,
             "far": 100000,
 
@@ -42,7 +40,7 @@ const Components = {
             "right": vec3.fromValues(1,0,0),
             "up": vec3.fromValues(0,1,0),
         };
-    }, 
+    },
     boxCollider() {
         return { 
             "size": vec3.fromValues(2, 2, 2) 

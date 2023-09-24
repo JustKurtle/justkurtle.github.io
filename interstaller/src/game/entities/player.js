@@ -9,9 +9,7 @@ const Player = {
             "boxCollider": Components.boxCollider(),
             
             "entityController": Components.entityController(),
-            "playerBehavior": {
-                
-            },
+            "playerBehavior": {},
             
             "camera": APP.camera
         };
@@ -30,7 +28,7 @@ const Player = {
 
             quat.multiply(rotQuat, upRotQuat, rightRotQuat); 
             quat.normalize(rotQuat, rotQuat);
-                
+            
             vec3.transformQuat(
                 player.camera.forward,
                 player.camera.forward,

@@ -181,7 +181,10 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         };
         image.src = path;
-        return texture;
+        return {
+            texture,
+            slot: 0
+        };
     };
     self.jShader = function(gl, source) {
         const vShader = gl.createShader(gl.VERTEX_SHADER);
@@ -294,20 +297,17 @@
         }
     };
     self.jBuffers = function(gl, arrays) {
-        let out = {};
-        for(let i in arrays) { 
-            out[i] = {...arrays[i]};
-            delete(out[i].array);
-            out[i].buffer = gl.createBuffer();
+        for(let i in arrays) {
+            arrays[i].buffer = arrays[i].buffer ? arrays[i].buffer : gl.createBuffer();
             if(i === 'index') {
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, out[i].buffer);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, arrays[i].buffer);
                 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(arrays[i].array), gl.STATIC_DRAW);
             } else {
-                gl.bindBuffer(gl.ARRAY_BUFFER, out[i].buffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, arrays[i].buffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arrays[i].array), gl.STATIC_DRAW);
             }
         }
-        return out;
+        return arrays;
     };
 }
 

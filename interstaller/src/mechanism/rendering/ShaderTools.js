@@ -1,4 +1,5 @@
 const TRANSPOSE = true;
+let textureSlot = 0;
 
 function buildShader(gl, source) {
     const vShader = gl.createShader(gl.VERTEX_SHADER);
@@ -99,8 +100,6 @@ function createAttribSetters(gl, program, setters) {
 }
 
 function createUniformSetters(gl, program, setters) {
-    let textureSlot = 0;
-
     let i = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
     while(i--) {
         const info = gl.getActiveUniform(program, i);
@@ -148,21 +147,54 @@ function createUniformSetters(gl, program, setters) {
                 setters[info.name] = v => {
                     gl.uniform1i(location, textureSlot);
                     gl.activeTexture(gl.TEXTURE0 + textureSlot++);
-                    gl.bindTexture(gl.TEXTURE_2D, v);
+                    gl.bindTexture(gl.TEXTURE_2D, v.texture);
                 };
                 break;
         }
     }
 }
 
-function loadTexture(gl, image) {
-    
+function loadTexture(gl, path) {
+    const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const srcFormat = gl.RGBA;
+        const srcType = gl.UNSIGNED_BYTE;
+        const pixel = new Uint8Array([255, 0, 255, 255]);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, 1, 1, 0, srcFormat, srcType, pixel);
+
+        const image = new Image();
+        image.onload = function() {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        };
+        image.src = path;
+        return texture;
 }
 
-function loadBuffers() {
-    
+function loadBuffers(gl, arrays) {
+    for(let i in arrays) {
+        arrays[i].buffer = arrays[i].buffer ? arrays[i].buffer : gl.createBuffer();
+        if(i === 'index') {
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, arrays[i].buffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, arrays[i].array, gl.STATIC_DRAW);
+        } else {
+            gl.bindBuffer(gl.ARRAY_BUFFER, arrays[i].buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, arrays[i].array, gl.STATIC_DRAW);
+        }
+    }
+    return arrays;
 }
 
 export default {
-    buildShader
+    buildShader,
+    loadTexture,
+    loadBuffers,
 };

@@ -1,12 +1,4 @@
-// function quadsphere(sideWidth) {
-//     let vertexPositions = [];
-
-//     return {
-//         vertexPositions: new Float32Array(vertexPositions)
-//     };
-// }
-
-function createQuad(sideWidth) {
+async function createQuad(sideWidth) {
     let invSideWidth = 1 / sideWidth;
     let vertexCount = ++sideWidth ** 2;
     let indexCount = (sideWidth - 1) ** 2;
@@ -41,7 +33,7 @@ function createQuad(sideWidth) {
     }
 }
 
-function createQuadSphere(sideWidth) {
+async function createQuadSphere(sideWidth) {
     let invSideWidth = 1 / sideWidth;
     let vertexCount = ++sideWidth ** 2 * 6;
     let indexCount = (sideWidth - 1) ** 2 * 6;

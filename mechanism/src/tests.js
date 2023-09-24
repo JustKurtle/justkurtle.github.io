@@ -1,21 +1,45 @@
-import "./mechanism/core.js";
+import ArrayTools from "./mechanism/arrays/ArrayTools.js";
+import ArrayMap from "./mechanism/arrays/ArrayMap.js";
+import SubArrayMap from "./mechanism/arrays/SubarrayMap.js";
+
+import Geometry from "./mechanism/resources/Geometry.js";
+
+import Scene from "./mechanism/rendering/Scene.js"
+import Prop from "./mechanism/rendering/Prop.js";
+import Renderer from "./mechanism/rendering/Renderer.js";
+
 
 async function run_tests() {
-    let gl = document.querySelector("#canvas").getContext("webgl2");
+    self.gl = document
+        .querySelector("#canvas")
+        .getContext("webgl2");
+    
+    function resize() {
+        gl.canvas.width = innerWidth;
+        gl.canvas.height = innerHeight;
+        gl.viewport(0,0, innerWidth, innerHeight);
+    }
+    resize();
+    addEventListener("resize", resize, false);
 
-    let assetManager = Mechanism.AssetManager.create();
-    await Mechanism.AssetManager.loadFromFiles(assetManager, [
-        "star.png",
-    ]);
-    await Mechanism.AssetManager.loadFromObjects(assetManager, {
-        "star.model": Mechanism.Geometry.createQuadSphere(2),
-    });
+    let prop = new Prop();
+    // prop.setModel();
+    
+    let scene = new Scene();
+    // scene.addProp(scene_obj);
 
-    let sceneRenderer = Mechanism.SceneRenderer.create(gl);
+    let renderer = new Renderer(gl);
+    // renderer.setScene();
+    
+    let then = 0;
+    function main(now) {
+        const dt = (now - then) * 0.001;
+        then = now;
+        
+        
 
-    let iter = 1000000;
-    Mechanism.Matrix44.test(iter);
-    Mechanism.Vector3.test(iter);
-    Mechanism.SubArrayMap.test(iter);
+        // requestAnimationFrame(main);
+    }
+    requestAnimationFrame(main);
 }
 addEventListener("load", run_tests, false);
