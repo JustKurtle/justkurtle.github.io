@@ -1,3 +1,17 @@
+/**
+ * This one is weird...
+ * It's a class that stores chunks of data inside of a Float32Array
+ * 
+ * The chunks have a size called sub_size. The size of the array is defined in multiples of this sub_size.
+ * 
+ * The chunks are mapped to indices that can be removed and inserted freely very densely or needing to shift all of the values of the array.
+ * 
+ * keys[key] = index;
+ * keyorder[index] = key;
+ * data[index * chunksize] = the beginning of the chunk;
+ * 
+ * The keys array stores the index of the data related to the key
+ */
 class SubArrayMap {
     #data;
     #keys;
@@ -49,7 +63,7 @@ class SubArrayMap {
     }
 
     reset() {
-        this.#data = new Float32Array(0);
+        this.#data = new Float32Array(this.#data.length);
         this.#keys = {};
         this.#keyorder = [];
         this.#additions = 0;
@@ -67,22 +81,9 @@ class SubArrayMap {
         while(i--) this.#data[index + i] = data[i];
     }
     
-    static create(step_size, sub_size) {
-        return new SubArrayMap(0, 20, 16);
-    }
-
-    static speed_test(iter) {
-        let a = new SubArrayMap(iter, 20, 16);
-    
-        let b = new Float32Array(16);
-        let c = new Float32Array(16);
-    
-        console.group("SubarrayMap");
-        speed_test("add()", i => a.add(b), iter);
-        speed_test("get()", i => a.get(i), iter);
-        speed_test("set()", i => a.set(i, c), iter);
-        speed_test("pop()", i => a.remove(i), iter);
-        console.groupEnd("SubarrayMap");
+    // for backwards compatibility with my old code
+    static create(size, step_size, sub_size) {
+        return new SubArrayMap(size, step_size, sub_size);
     }
 }
 export default SubArrayMap;

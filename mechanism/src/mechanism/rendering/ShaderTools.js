@@ -1,22 +1,23 @@
 const TRANSPOSE = true;
 
+let textureSlot = 0;
 function buildShader(gl, source) {
     const vShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vShader, source[0]);
     gl.compileShader(vShader);
     if (!gl.getShaderParameter(vShader, gl.COMPILE_STATUS)) {
-        let err = gl.getShaderInfoLog(vShader);
+        let err = "vertex shader compile error: " + gl.getShaderInfoLog(vShader);
         gl.deleteShader(vShader);
-        throw new Error("vertex shader compile error: " + err);
+        throw new Error(err);
     }
     
     const fShader = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(fShader, source[1]);
     gl.compileShader(fShader);
     if (!gl.getShaderParameter(fShader, gl.COMPILE_STATUS)) {
-        let err = gl.getShaderInfoLog(fShader);
+        let err = "fragment shader compile error: " + gl.getShaderInfoLog(fShader);
         gl.deleteShader(fShader);
-        throw new Error("fragment shader compile error: " + err);
+        throw new Error(err);
     }
     
     const program = gl.createProgram();
@@ -24,9 +25,9 @@ function buildShader(gl, source) {
     gl.attachShader(program, fShader);
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        let err = gl.getShaderInfoLog(program);
+        let err = "shader program link error: " + gl.getShaderInfoLog(program);
         gl.deleteProgram(program);
-        throw new Error("shader program link error: " + err);
+        throw new Error(err);
     }
     
     let setters = {};
@@ -38,6 +39,10 @@ function buildShader(gl, source) {
         set(values) {
             gl.useProgram(program);
             for(let i in values) if(setters[i]) setters[i](values[i]);
+            if(values["index"]) {
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, values.index.buffer);
+                gl.drawElements(gl.TRIANGLES, values.index.length, gl.UNSIGNED_SHORT, 0);
+            }
             textureSlot = 0;
         }
     };
@@ -50,6 +55,7 @@ function createAttribSetters(gl, program, setters) {
         const location = gl.getAttribLocation(program, info.name);
         
         let divisor;
+        
         divisor = div => divisor = div ? (div, offset) => gl.vertexAttribDivisor(location + offset, div) : () => {};
         switch(info.type) {
             case gl.FLOAT:
@@ -94,13 +100,11 @@ function createAttribSetters(gl, program, setters) {
         }
     }
     setters["index"] = b => {
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, b.buffer);
+        gl.bindBuffer(b.target, b.buffer);
     };
 }
 
 function createUniformSetters(gl, program, setters) {
-    let textureSlot = 0;
-
     let i = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
     while(i--) {
         const info = gl.getActiveUniform(program, i);
@@ -155,14 +159,34 @@ function createUniformSetters(gl, program, setters) {
     }
 }
 
-function loadTexture(gl, image) {
+/**
+ * 
+ * @param {*} gl 
+ * @param {*} image 
+ * @param {*} param2 
+ * @returns 
+ */
+function buildTexture(gl, image, {
+    target = WebGL2RenderingContext.TEXTURE_2D, 
+    level = 0, 
+    internalFormat = WebGL2RenderingContext.RGBA, 
+    srcFormat = WebGL2RenderingContext.RGBA, 
+    srcType = WebGL2RenderingContext.UNSIGNED_BYTE,
+}) {
+    const texture = gl.createTexture();
+    gl.bindTexture(target, texture);
     
+    gl.texImage2D(target, level, internalFormat, srcFormat, srcType, image);
+
+    gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(target, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+    gl.generateMipmap(target);
+
+    return texture;
 }
 
-function loadBuffers() {
-    
-}
-
-export default {
-    buildShader
+export {
+    buildShader,
+    buildTexture,
 };

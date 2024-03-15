@@ -43,15 +43,15 @@ import "./game/player.js"
     }
   `]);
   let texture = jTexture(gl, './assets/grass.png');
-  let entities = [new Player(new Vec3(8,64,8))];
+  let entities = [new Player(new Vec3(0,16,0))];
   let chunks = [new Chunk(self.shader)];
 
   let camera = new jCamera();
   camera.lookAt = new Mat4();
   {
-    let i = 256 * 63 + 16;
+    let i = 64 * 63 + 16;
     while(i--) {
-      chunks[0].set([i % 16, i / 256 | 0, (i / 16 | 0) % 16], 1);
+      chunks[0].set(cDecode(i), 1);
     }
     chunks[0].update();
   }

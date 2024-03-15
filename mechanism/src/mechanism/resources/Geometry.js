@@ -1,4 +1,6 @@
-async function createQuad(sideWidth) {
+import {concatFloat32Arrays, concatUint16Arrays, replaceFrom} from "../arrays/ArrayTools.js"
+
+function createQuad(sideWidth) {
     let invSideWidth = 1 / sideWidth;
     let vertexCount = ++sideWidth ** 2;
     let indexCount = (sideWidth - 1) ** 2;
@@ -10,18 +12,18 @@ async function createQuad(sideWidth) {
     let j = 0, i = vertexCount;
     while(i--) {
         let x = (i % sideWidth) * invSideWidth;
-        let y = (Math.floor(i / sideWidth) % sideWidth) * invSideWidth;
+        let y = Math.floor(i / sideWidth) * invSideWidth;
 
-        replaceAt(vertexArray, i * 3, [y - 0.5, x - 0.5, 0]);
+        replaceFrom(vertexArray, i * 3, [y - 0.5, x - 0.5, 0]);
 
-        replaceAt(texCoordArray, i * 2, [x, y]);
+        replaceFrom(texCoordArray, i * 2, [y, 1-x]);
 
         if(x != 1 && y != 1) {
             let a = i,
                 b = a + 1,
                 c = b + sideWidth,
                 d = c - 1;
-            replaceAt(indexArray, j, [a,b,c,  a,c,d]);
+            replaceFrom(indexArray, j, [a,b,c,  a,c,d]);
             j += 6;
         }
     }
@@ -33,7 +35,7 @@ async function createQuad(sideWidth) {
     }
 }
 
-async function createQuadSphere(sideWidth) {
+function createCube(sideWidth) {
     let invSideWidth = 1 / sideWidth;
     let vertexCount = ++sideWidth ** 2 * 6;
     let indexCount = (sideWidth - 1) ** 2 * 6;
@@ -49,46 +51,36 @@ async function createQuadSphere(sideWidth) {
 
         switch(Math.floor(i / sideWidth ** 2)) {
             case 0:
-                replaceAt(vertexArray, i * 3, [ y, x,-0.5]);
+                replaceFrom(vertexArray, i * 3, [ y, x,-0.5]);
                 break;
             case 1:
-                replaceAt(vertexArray, i * 3, [ x, y, 0.5]);
+                replaceFrom(vertexArray, i * 3, [ x, y, 0.5]);
                 break;
             case 2:
-                replaceAt(vertexArray, i * 3, [ x,-0.5, y]);
+                replaceFrom(vertexArray, i * 3, [ x,-0.5, y]);
                 break;
             case 3:
-                replaceAt(vertexArray, i * 3, [ y, 0.5, x]);
+                replaceFrom(vertexArray, i * 3, [ y, 0.5, x]);
                 break;
             case 4:
-                replaceAt(vertexArray, i * 3, [-0.5, y, x]);
+                replaceFrom(vertexArray, i * 3, [-0.5, y, x]);
                 break;
             case 5:
-                replaceAt(vertexArray, i * 3, [ 0.5, x, y]);
+                replaceFrom(vertexArray, i * 3, [ 0.5, x, y]);
                 break;
         }
 
         x += 0.5, y += 0.5;
-        replaceAt(texCoordArray, i * 2, [x, y]);
+        replaceFrom(texCoordArray, i * 2, [x, y]);
 
         if(x != 1 && y != 1) {
             let a = i,
                 b = a + 1,
                 c = b + sideWidth,
                 d = c - 1;
-            replaceAt(indexArray, j, [a,b,c,  a,c,d]);
+            replaceFrom(indexArray, j, [a,b,c,  a,c,d]);
             j += 6;
         }
-    }
-
-    i = vertexCount;
-    while(i--) {
-        let offset = i * 3;
-        let len = 2 * Math.hypot(...vertexArray.slice(offset, 3));
-
-        vertexArray[offset+0] /= len;
-        vertexArray[offset+1] /= len;
-        vertexArray[offset+2] /= len;
     }
 
     return {
@@ -98,12 +90,42 @@ async function createQuadSphere(sideWidth) {
     }
 }
 
-function replaceAt(target, startIndex, source) {
-    let iter = source.length;
-    while(iter--) target[iter + startIndex] = source[iter];
+function createQuadSphere(sideWidth) {
+    let output = createCube(sideWidth);
+
+    let vertexCount = ++sideWidth ** 2 * 3;
+
+    let i = output.vertexArray.length / 18;
+    while(i--) {
+        let index = i * 3;
+        let len = 0.5 / Math.hypot(output.vertexArray[index], output.vertexArray[index+1], output.vertexArray[index+2]);
+
+        do {
+            output.vertexArray[index+0] *= len;
+            output.vertexArray[index+1] *= len;
+            output.vertexArray[index+2] *= len;
+            
+            index += vertexCount;
+        }
+        while(index < output.vertexArray.length);
+    }
+
+    return output;
+}
+
+function extendGeometry(target, src) {
+    let targetLength = target.vertexArray.length / 3;
+
+    return {
+        vertexArray: concatFloat32Arrays(target.vertexArray, src.vertexArray),
+        texCoordArray: concatFloat32Arrays(target.texCoordArray, src.texCoordArray),
+        indexArray: concatUint16Arrays(target.indexArray, src.indexArray, targetLength),
+    };
 }
 
 export default {
+    createQuad,
     createQuadSphere,
-    createQuad
+    createCube,
+    extendGeometry
 };

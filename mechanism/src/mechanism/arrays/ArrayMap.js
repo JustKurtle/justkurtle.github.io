@@ -69,10 +69,10 @@ class ArrayMap {
         let c = new Array(16);
     
         console.group("ArrayMap");
-        speed_test("add()", i => a.add(b), iter);
+        speed_test("add()", _ => a.add(b), iter);
         speed_test("get()", i => a.get(i), iter);
         speed_test("set()", i => a.set(i, c), iter);
-        speed_test("pop()", i => a.remove(i), iter);
+        speed_test("remove()", i => a.remove(i), iter);
         console.groupEnd("ArrayMap");
     }
 }

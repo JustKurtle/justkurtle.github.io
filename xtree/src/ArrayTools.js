@@ -88,7 +88,7 @@ function binarySearch(array, value, compare = (a, b) => a - b) {
         // same as ceil division by 2
         index = (upper + lower + 1) >> 1;
     }
-    return { error: "value not found" };
+    return { error: "value was not found" };
 }
 
 /**
@@ -117,50 +117,11 @@ function binaryInsert(array, value, compare = (a, b) => a - b) {
     return index;
 }
 
-/**
- * Creates a new Float32Array with all values of the 2 provided
- * @param {Float32Array} first the first array to be copied
- * @param {Float32Array} second the second array to be copied
- * @returns Float32Array
- */
-function concatFloat32Arrays(first, second) {
-    let output = new Float32Array(first.length + second.length);
-    
-    let iter = second.length;
-    while(iter--) output[iter + first.length] = second[iter];
-
-    iter = first.length;
-    while(iter--) output[iter] = first[iter];
-    
-    return output;
-}
-
-/**
- * Creates a new Uint16Array with all values of the 2 provided
- * @param {Uint16Array} first the first array to be copied
- * @param {Uint16Array} second the second array to be copied
- * @returns Uint16Array
- */
-function concatUint16Arrays(first, second, offset) {
-    let output = new Uint16Array(first.length + second.length);
-    
-    let iter = second.length;
-    while(iter--) output[iter + first.length] = second[iter] + offset;
-
-    iter = first.length;
-    while(iter--) output[iter] = first[iter];
-    
-    return output;
-}
-
-
 export {
     extend,
     replaceFrom,
     binarySearchRange,
     binarySearch,
     binaryInsert,
-    concatFloat32Arrays,
-    concatUint16Arrays
 };
 

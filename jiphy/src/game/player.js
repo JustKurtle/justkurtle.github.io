@@ -90,7 +90,7 @@ self.Player = class Player {
       let ray = this.ray.copy();
       let bPos = [], hDir = 0;
       let boxhit = false;
-      for(let b = cCode(this.pos.s(7, []));b < cCode(this.pos.a(8, []));b++) {
+      for(let b = cCode(this.pos.s(3, []));b < cCode(this.pos.a(4, []));b++) {
         if(chunk.data[b] != 0) box.src = new Vec3(...cDecode(b));
         if(this.box.overlaps(box)) {
           let o = this.box.overlap(box);
@@ -101,7 +101,7 @@ self.Player = class Player {
         if((mouse[2] || mouse[0]) && ray.hits(box)) {
           ray.dir = ray.hit(box);
           bPos = new Vec3(...cDecode(b));
-          hDir = ray.dir.a(this.pos, new Vec3()).a([0.5,0.5,0.5]);;
+          hDir = ray.dir.a(this.pos, new Vec3()).a([0.5,0.5,0.5]);
         }
       }
       if(hDir) {

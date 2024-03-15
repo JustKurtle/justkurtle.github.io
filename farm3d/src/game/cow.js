@@ -14,7 +14,7 @@ const Cow = {
         return output;
     },
 
-    load(out, gl, { camera, variant = Math.floor(Math.random()*2) }) {
+    load(out, gl, { camera, variant = Math.floor(Math.random()*3) }) {
         let texture = jTexture(gl, 'assets/textures/cow'+variant+'.png');
         let modelView = mat4.create();
 
@@ -67,6 +67,10 @@ const Cow = {
             out.pos, 
             target.pos, 
             vec3.fromValues(0, 1, 0)); // look at the player
+        mat4.scale(
+            out.shaderMaterial.uModelViewMatrix, 
+            out.shaderMaterial.uModelViewMatrix, 
+            vec3.fromValues(1, 1, 1));
 
         vec3.multiply(out.vel, out.vel, [0.9, 0.9, 0.9]);
         

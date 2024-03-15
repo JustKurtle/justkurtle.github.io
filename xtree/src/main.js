@@ -1,52 +1,68 @@
 import QuadTree from "./QuadTree.js"
 
-class AABB {
-    constructor(x, y, w, h) {
-        this.srcPos = [x, y];
-        this.w = w;
-        this.h = h;
-    }
+const vec2 = {
+    create: _ => new Float32Array(2),
+    from: _ => new Float32Array(_),
+}
 
-    get x() { return this.srcPos[0]; }
-    get y() { return this.srcPos[1]; }
-    get xm() { return this.srcPos[0] + this.w; }
-    get ym() { return this.srcPos[1] + this.h; }
-
-    intersect(aabb) {
-        const x = AABB.check(this.x, this.xm, aabb.x, aabb.xm);
-        const y = AABB.check(this.y, this.ym, aabb.y, aabb.ym);
-
-        switch(Math.min(x * x, y * y)) {
-            case x * x:
-                return [x, 0];
-            case y * y:
-                return [0, y];
-            default:
-                return [0, 0];
-        }
+let search = {
+    position: vec2.create(),
+    size: vec2.from([20,20]),
+};
+addEventListener("mousemove", e => {
+    search.position[0] = e.x;
+    search.position[1] = e.y;
+    if(e.buttons) {
+        grid.insert(search.position, search.size, [...search.position, ...search.size]);
     }
-    intersects(aabb) {
-        const x = AABB.check(this.x, this.xm, aabb.x, aabb.xm);
-        const y = AABB.check(this.y, this.ym, aabb.y, aabb.ym);
-        return (x !== null && y !== null);
-    }
-    contains(aabb) {
-        const x = AABB.check(this.x, this.xm - aabb.w, aabb.x, aabb.x);
-        const y = AABB.check(this.y, this.ym - aabb.h, aabb.y, aabb.y);
-        return (x && y) !== null;
-    }
+}, false);
+addEventListener("wheel", e => {
+    search.size[0] *= 2 ** Math.sign(e.deltaY);
+    search.size[1] *= 2 ** Math.sign(e.deltaY);
+}, false);
 
-    static check(sMin, sMax, oMin, oMax) {
-        const O1 = sMin <= oMax && sMin >= oMin;
-        const O2 = oMin <= sMax && oMin >= sMin;
-
-        if(O1 || O2) {
-            const min1 = oMax - sMin;
-            const min2 = oMin - sMax;
-            return (min1 * min1 < min2 * min2) ? min1 : min2;
-        }
-        return null;
+let tree = new QuadTree([0,0], [800, 600], 4, 10);
+{
+    let i = 2000000;
+    while(i--) {
+        let position = [Math.random() * (800 - 10), Math.random() * (600 - 10)];
+        let size = [Math.random() * 10, Math.random() * 10];
+        tree.insert(position, size, [...position, ...size]);
     }
+}
+
+self.speed_test = (name, callback, scale = 2000000) => {
+    console.time(name);
+    while(scale--) callback(scale);
+    console.timeEnd(name);
+};
+
+
+self.update = (dt) => {
+    console.log(total / i);
+}
+
+let i = 0;
+let total = 0;
+self.draw = (ctx) => {
+    let then = performance.now();
+    tree.collect(search.position, search.size);
+    total += performance.now() - then; i++;
+    console.log(total / i);
+    
+    // let data = tree.collect(search.position, search.size);
+    // let i = data.length;
+    // while(i--) {
+    //     ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 50%)`;
+    //     ctx.fillRect(...data[i].value)
+    // }
+    
+    // ctx.strokeStyle = `hsl(${200}, 100%, 50%)`;
+    // ctx.strokeRect(
+    //     search.position[0],
+    //     search.position[1],
+    //     search.size[0],
+    //     search.size[1]);
 }
 
 (function() {
@@ -56,55 +72,25 @@ class AABB {
         canvas.width = innerWidth;
         canvas.height = innerHeight;
     })();
-
-    const keyEvent = new Map();
-    window.onkeydown = e => keyEvent.set(e.code, e);    
-    window.onkeyup = e => keyEvent.delete(e.code);
     
-    let clrColor = new Uint8Array([32,12,46]);
+    let clrColor = new Uint8Array([32, 16, 48]);
 
-    let tree = new QuadTree([innerWidth / 2, innerHeight / 2],[innerWidth / 2, innerHeight / 2], 4);
-
-    let findPos = [0, 0];
-    let searchSize = [32, 32];
-    let w = 2, h = 2;
-    
-    for(let i = Math.floor(innerWidth * innerHeight / 64);i--;) {
-        let boxPosition = [Math.random() * innerWidth - 0.5, Math.random() * innerHeight - 0.5];
-        tree.set(boxPosition, [1, 1], new AABB(...boxPosition, 1, 1));
-    }
-
-    addEventListener("mousemove", e => {
-        findPos[0] = e.x;
-        findPos[1] = e.y;
-        if(e.buttons > 0) {
-            let boxPosition = [e.x - w/2, e.y - h/2];
-            tree.set(boxPosition, [w, h], new AABB(...boxPosition, w, h));
-        }
-    }, false);
-    addEventListener("wheel", e => {
-        if(searchSize[0] - e.deltaY < 0) {
-            searchSize = [0, 0];
-            return;
-        }
-        searchSize[0] -= e.deltaY / 10;
-        searchSize[1] -= e.deltaY / 10;
-    }, false);
+    self.QuadTree = new QuadTree([0,0], [innerWidth, innerHeight]);
 
     let then = 0;
     function main(now) {
-        requestAnimationFrame(main);
         const dt = (now - then) * 0.001;
         then = now;
-
+        
         ctx.fillStyle = `rgba(${clrColor}, 1)`;
         ctx.fillRect(0,0, innerWidth, innerHeight);
+       
+        update(dt);
+        draw(ctx);
 
-        let points = tree.get(findPos, searchSize);
-        for(let v of points) {
-            ctx.fillStyle = "#00FF98";
-            ctx.fillRect(v.x,v.y,v.w,v.h);
-        }
+        document.querySelector('title').innerHTML = "fps: " + ((1 / dt) | 0);
+        
+        requestAnimationFrame(main);
     }
     requestAnimationFrame(main);
 })();
