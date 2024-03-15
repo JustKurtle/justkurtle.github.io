@@ -1,9 +1,9 @@
 addEventListener("load", async e => {
-    document.querySelector(".gallery-title").addEventListener("click", async e => {
+    function gallery_refresh() {
         let galleryContent = document.querySelector(".gallery-content");
         galleryContent.innerHTML = "";
 
-        let gallery = load_images("./gallery/Important"+Math.floor(Math.random() * 17 + 1),
+        load_images("./gallery/Important"+Math.floor(Math.random() * 17 + 1),
             images => {
                 let i = images.length;
                 while(i--) {
@@ -11,7 +11,10 @@ addEventListener("load", async e => {
                     galleryContent.appendChild(images[i]);
                 }
             });
-    }, false);
+    };
+    
+    document.querySelector(".gallery-title").addEventListener("click", gallery_refresh, false);
+    gallery_refresh();
 }, false);
 
 /**
